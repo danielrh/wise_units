@@ -6,6 +6,25 @@ use term::Term;
 use unit::Unit;
 use unit_parser::Rule;
 
+pub trait Visitor<T> {
+    fn visit(&mut self, pair: Pair<Rule>) -> Result<T, Error>;
+}
+
+pub struct Digits(i32);
+
+impl Visitor<Digits> for Interpreter {
+    fn visit(&mut self, pair: Pair<Rule>) -> Result<Digits, Error> {
+        let span = pair.into_span();
+        let string = span.as_str();
+
+        let internal = string.parse::<i32>().map_err(|e| Error::ParsingError {
+            expression: e.to_string(),
+        })?;
+
+        Ok(Digits(internal))
+    }
+}
+
 pub struct Interpreter;
 
 impl Interpreter {
@@ -273,15 +292,6 @@ impl Interpreter {
         Ok(())
     }
 
-    fn visit_digits(&mut self, pair: Pair<Rule>) -> Result<i32, Error> {
-        let span = pair.into_span();
-        let string = span.as_str();
-
-        string.parse::<i32>().map_err(|e| Error::ParsingError {
-            expression: e.to_string(),
-        })
-    }
-
     fn visit_exponent(&mut self, pair: Pair<Rule>, term: &mut Term) -> Result<(), Error> {
         let mut e = 1;
 
@@ -300,7 +310,8 @@ impl Interpreter {
                     }
                 }
                 Rule::digits => {
-                    e *= self.visit_digits(inner_pair)?;
+                    let digits = <Self as Visitor<Digits>>::visit(self, inner_pair)?;
+                    e *= digits.0;
                 }
                 _ => unreachable!(),
             }
@@ -369,7 +380,9 @@ impl Interpreter {
         for inner_pair in pair.into_inner() {
             match inner_pair.as_rule() {
                 Rule::digits => {
-                    factor = self.visit_digits(inner_pair)?;
+                    let digits = <Self as Visitor<Digits>>::visit(self, inner_pair)?;
+
+                    factor = digits.0;
                 }
                 _ => unreachable!(),
             }
