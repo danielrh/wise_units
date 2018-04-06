@@ -14,6 +14,7 @@ pub trait Visitor<T> {
 pub struct Factor(u32);
 pub struct Digits(i32);
 pub struct Exponent(i32);
+pub struct Annotation(String);
 
 impl Visitor<Digits> for Interpreter {
     fn visit(&mut self, pair: Pair<Rule>) -> Result<Digits, Error> {
@@ -69,6 +70,16 @@ impl Visitor<Exponent> for Interpreter {
         }
 
         Ok(Exponent(e))
+    }
+}
+
+impl Visitor<Annotation> for Interpreter {
+    fn visit(&mut self, pair: Pair<Rule>) -> Result<Annotation, Error> {
+        let span = pair.into_span();
+        let string = span.as_str();
+        let internal = string.to_string();
+
+        Ok(Annotation(internal))
     }
 }
 
@@ -384,19 +395,6 @@ impl Interpreter {
         Ok(())
     }
 
-    fn visit_annotation(&mut self, pair: Pair<Rule>, term: &mut Term) -> Result<(), Error> {
-        for inner_pair in pair.into_inner() {
-            match inner_pair.as_rule() {
-                Rule::annotation => {
-                    term.annotation = Some(inner_pair.into_span().as_str().to_string())
-                }
-                _ => unreachable!(),
-            }
-        }
-
-        Ok(())
-    }
-
     fn visit_basic_component(
         &mut self,
         pair: Pair<Rule>,
@@ -411,7 +409,9 @@ impl Interpreter {
                     self.visit_annotatable(inner_pair, &mut term)?;
                 }
                 Rule::annotation => {
-                    self.visit_annotation(inner_pair, &mut term)?;
+                    let annotation = <Self as Visitor<Annotation>>::visit(self, inner_pair)?;
+
+                    term.annotation = Some(annotation.0);
                 }
                 Rule::factor => {
                     let factor_struct = <Self as Visitor<Factor>>::visit(self, inner_pair)?;
