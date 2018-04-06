@@ -3,12 +3,14 @@ pub mod basic_component;
 pub mod component;
 pub mod component_with_factor;
 pub mod simple_unit;
+pub mod slash_term;
 
 pub use self::annotatable::Annotatable;
 pub use self::basic_component::BasicComponent;
 pub use self::component::Component;
 pub use self::component_with_factor::ComponentWithFactor;
 pub use self::simple_unit::SimpleUnit;
+pub use self::slash_term::SlashTerm;
 
 use atom::Atom;
 use error::Error;
@@ -469,6 +471,35 @@ impl Visitor<Component> for Interpreter {
     }
 }
 
+impl Visitor<SlashTerm> for Interpreter {
+    fn visit(&mut self, pair: Pair<Rule>) -> Result<SlashTerm, Error> {
+        let mut slash_term = SlashTerm::new();
+
+        for inner_pair in pair.into_inner() {
+            match inner_pair.as_rule() {
+                Rule::component => {
+                    let component = <Self as Visitor<Component>>::visit(self, inner_pair)?;
+
+                    slash_term.terms.append(&mut component.into());
+                }
+                Rule::term => {
+                    let mut new_terms: Vec<Term> = vec![];
+                    self.visit_term(inner_pair, &mut new_terms)?;
+
+                    for new_term in &mut new_terms {
+                        new_term.exponent = -new_term.exponent;
+                    }
+
+                    slash_term.terms.append(&mut new_terms);
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        Ok(slash_term)
+    }
+}
+
 pub struct Interpreter;
 
 impl Interpreter {
@@ -500,31 +531,6 @@ impl Interpreter {
     //     unimplemented!()
     // }
 
-    fn visit_slash_term(&mut self, pair: Pair<Rule>, terms: &mut Vec<Term>) -> Result<(), Error> {
-        for inner_pair in pair.into_inner() {
-            match inner_pair.as_rule() {
-                Rule::component => {
-                    let component = <Self as Visitor<Component>>::visit(self, inner_pair)?;
-
-                    terms.append(&mut component.into());
-                }
-                Rule::term => {
-                    let mut new_terms: Vec<Term> = vec![];
-                    self.visit_term(inner_pair, &mut new_terms)?;
-
-                    for new_term in &mut new_terms {
-                        new_term.exponent = -new_term.exponent;
-                    }
-
-                    terms.append(&mut new_terms);
-                }
-                _ => unreachable!(),
-            }
-        }
-
-        Ok(())
-    }
-
     fn visit_dot_term(&mut self, pair: Pair<Rule>, terms: &mut Vec<Term>) -> Result<(), Error> {
         for inner_pair in pair.into_inner() {
             match inner_pair.as_rule() {
@@ -550,7 +556,11 @@ impl Interpreter {
         for inner_pair in pair.into_inner() {
             match inner_pair.as_rule() {
                 Rule::dot_term => self.visit_dot_term(inner_pair, &mut terms)?,
-                Rule::slash_term => self.visit_slash_term(inner_pair, &mut terms)?,
+                Rule::slash_term => {
+                    let slash_term = <Self as Visitor<SlashTerm>>::visit(self, inner_pair)?;
+
+                    terms.append(&mut slash_term.into());
+                },
                 Rule::component => {
                     let component = <Self as Visitor<Component>>::visit(self, inner_pair)?;
 
