@@ -10,6 +10,8 @@ pub trait Visitor<T> {
     fn visit(&mut self, pair: Pair<Rule>) -> Result<T, Error>;
 }
 
+// Wrapping these with structs to be able to impl Visitor for that type.
+pub struct Factor(u32);
 pub struct Digits(i32);
 
 impl Visitor<Digits> for Interpreter {
@@ -22,6 +24,19 @@ impl Visitor<Digits> for Interpreter {
         })?;
 
         Ok(Digits(internal))
+    }
+}
+
+impl Visitor<Factor> for Interpreter {
+    fn visit(&mut self, pair: Pair<Rule>) -> Result<Factor, Error> {
+        let span = pair.into_span();
+        let string = span.as_str();
+
+        let internal = string.parse::<u32>().map_err(|e| Error::ParsingError {
+            expression: e.to_string(),
+        })?;
+
+        Ok(Factor(internal))
     }
 }
 
@@ -293,7 +308,7 @@ impl Interpreter {
     }
 
     fn visit_exponent(&mut self, pair: Pair<Rule>, term: &mut Term) -> Result<(), Error> {
-        let mut e = 1;
+        let mut e = 1_i32;
 
         for inner_pair in pair.into_inner() {
             match inner_pair.as_rule() {
@@ -311,6 +326,7 @@ impl Interpreter {
                 }
                 Rule::digits => {
                     let digits = <Self as Visitor<Digits>>::visit(self, inner_pair)?;
+
                     e *= digits.0;
                 }
                 _ => unreachable!(),
@@ -374,23 +390,6 @@ impl Interpreter {
         Ok(())
     }
 
-    fn visit_factor(&mut self, pair: Pair<Rule>) -> Result<u32, Error> {
-        let mut factor = 0;
-
-        for inner_pair in pair.into_inner() {
-            match inner_pair.as_rule() {
-                Rule::digits => {
-                    let digits = <Self as Visitor<Digits>>::visit(self, inner_pair)?;
-
-                    factor = digits.0;
-                }
-                _ => unreachable!(),
-            }
-        }
-
-        Ok(factor as u32)
-    }
-
     fn visit_basic_component(
         &mut self,
         pair: Pair<Rule>,
@@ -408,7 +407,9 @@ impl Interpreter {
                     self.visit_annotation(inner_pair, &mut term)?;
                 }
                 Rule::factor => {
-                    term.factor = self.visit_factor(inner_pair)?;
+                    let factor_struct = <Self as Visitor<Factor>>::visit(self, inner_pair)?;
+
+                    term.factor = factor_struct.0;
                 }
                 Rule::term => {
                     is_term = true;
@@ -435,7 +436,9 @@ impl Interpreter {
         for inner_pair in pair.into_inner() {
             match inner_pair.as_rule() {
                 Rule::factor => {
-                    factor = self.visit_factor(inner_pair)?;
+                    let factor_struct = <Self as Visitor<Factor>>::visit(self, inner_pair)?;
+
+                    factor = factor_struct.0;
                 }
                 Rule::basic_component => {
                     self.visit_basic_component(inner_pair, terms)?;

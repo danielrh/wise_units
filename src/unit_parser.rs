@@ -76,7 +76,7 @@ mod tests {
             parser: UnitParser,
             input: "123456!@#",
             rule: Rule::factor,
-            tokens: [factor(0, 6, [digits(0, 6)])]
+            tokens: [factor(0, 6)]
         }
     }
 
@@ -270,7 +270,7 @@ mod tests {
             rule: Rule::component_with_factor,
             tokens: [
                 component_with_factor(0, 3, [
-                      factor(0, 1, [digits(0, 1)]),
+                      factor(0, 1),
                       basic_component(1, 3, [
                               annotatable(1, 3, [
                                       simple_unit(1, 3, [
@@ -289,7 +289,7 @@ mod tests {
             rule: Rule::component_with_factor,
             tokens: [
                 component_with_factor(0, 11, [
-                    factor(0, 1, [digits(0, 1)]),
+                    factor(0, 1),
                     basic_component(1, 11, [
                         annotatable(1, 5, [
                             simple_unit(1, 3, [
@@ -317,7 +317,7 @@ mod tests {
             tokens: [
                 component(0, 11, [
                     component_with_factor(0, 11, [
-                        factor(0, 1, [digits(0, 1)]),
+                        factor(0, 1),
                         basic_component(1, 11, [
                             annotatable(1, 5, [
                                 simple_unit(1, 3, [
@@ -350,7 +350,7 @@ mod tests {
                 slash_term(0, 27, [
                     component(0, 11, [
                         component_with_factor(0, 11, [
-                            factor(0, 1, [digits(0, 1)]),
+                            factor(0, 1),
                             basic_component(1, 11, [
                                 annotatable(1, 5, [
                                     simple_unit(1, 3, [
