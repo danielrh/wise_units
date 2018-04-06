@@ -21,6 +21,12 @@ pub struct SimpleUnit {
     atom: Option<Atom>,
 }
 
+pub struct Annotatable {
+    prefix: Option<Prefix>,
+    atom: Option<Atom>,
+    exponent: i32,
+}
+
 impl Visitor<Digits> for Interpreter {
     fn visit(&mut self, pair: Pair<Rule>) -> Result<Digits, Error> {
         let span = pair.into_span();
@@ -354,6 +360,31 @@ impl Visitor<SimpleUnit> for Interpreter {
     }
 }
 
+impl Visitor<Annotatable> for Interpreter {
+    fn visit(&mut self, pair: Pair<Rule>) -> Result<Annotatable, Error> {
+        let mut annotatable = Annotatable { prefix: None, atom: None, exponent: 1 };
+
+        for inner_pair in pair.into_inner() {
+            match inner_pair.as_rule() {
+                Rule::simple_unit => {
+                    let simple_unit = <Self as Visitor<SimpleUnit>>::visit(self, inner_pair)?;
+
+                    annotatable.prefix = simple_unit.prefix;
+                    annotatable.atom = simple_unit.atom;
+                }
+                Rule::exponent => {
+                    let exponent = <Self as Visitor<Exponent>>::visit(self, inner_pair)?;
+
+                    annotatable.exponent = exponent.0;
+                }
+                // Rule::special_unit => {}
+                _ => unreachable!(),
+            }
+        }
+
+        Ok(annotatable)
+    }
+}
 pub struct Interpreter;
 
 impl Interpreter {
@@ -385,28 +416,6 @@ impl Interpreter {
     //     unimplemented!()
     // }
 
-    fn visit_annotatable(&mut self, pair: Pair<Rule>, term: &mut Term) -> Result<(), Error> {
-        for inner_pair in pair.into_inner() {
-            match inner_pair.as_rule() {
-                Rule::simple_unit => {
-                    let simple_unit = <Self as Visitor<SimpleUnit>>::visit(self, inner_pair)?;
-
-                    term.atom = simple_unit.atom;
-                    term.prefix = simple_unit.prefix;
-                }
-                Rule::exponent => {
-                    let exponent = <Self as Visitor<Exponent>>::visit(self, inner_pair)?;
-
-                    term.exponent = exponent.0;
-                }
-                // Rule::special_unit => {}
-                _ => unreachable!(),
-            }
-        }
-
-        Ok(())
-    }
-
     fn visit_basic_component(
         &mut self,
         pair: Pair<Rule>,
@@ -418,7 +427,11 @@ impl Interpreter {
         for inner_pair in pair.into_inner() {
             match inner_pair.as_rule() {
                 Rule::annotatable => {
-                    self.visit_annotatable(inner_pair, &mut term)?;
+                    let annotatable = <Self as Visitor<Annotatable>>::visit(self, inner_pair)?;
+
+                    term.prefix = annotatable.prefix;
+                    term.atom = annotatable.atom;
+                    term.exponent = annotatable.exponent;
                 }
                 Rule::annotation => {
                     let annotation = <Self as Visitor<Annotation>>::visit(self, inner_pair)?;
