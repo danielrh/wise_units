@@ -72,32 +72,8 @@ impl Visitor<Exponent> for Interpreter {
     }
 }
 
-pub struct Interpreter;
-
-impl Interpreter {
-    pub fn interpret(&mut self, pairs: Pairs<Rule>) -> Result<Unit, Error> {
-        let mut terms: Vec<Term> = vec![];
-
-        self.visit_with_pairs(pairs, &mut terms)?;
-
-        Ok(Unit { terms: terms })
-    }
-
-    fn visit_with_pairs(&mut self, pairs: Pairs<Rule>, terms: &mut Vec<Term>) -> Result<(), Error> {
-        for pair in pairs {
-            match pair.as_rule() {
-                Rule::main_term => self.visit_main_term(pair, terms)?,
-                _ => {
-                    println!("visit_with_pairs: unreachable rule: {:?}", pair);
-                    unreachable!()
-                }
-            };
-        }
-
-        Ok(())
-    }
-
-    fn visit_atom_symbol(&mut self, pair: Pair<Rule>, term: &mut Term) -> Result<(), Error> {
+impl Visitor<Atom> for Interpreter {
+    fn visit(&mut self, pair: Pair<Rule>) -> Result<Atom, Error> {
         let pair_str = pair.into_span();
 
         let atom = match pair_str.as_str() {
@@ -300,7 +276,31 @@ impl Interpreter {
             _ => return Err(Error::UnknownUnitString(pair_str.as_str().to_string())),
         };
 
-        term.atom = Some(atom);
+        Ok(atom)
+    }
+}
+
+pub struct Interpreter;
+
+impl Interpreter {
+    pub fn interpret(&mut self, pairs: Pairs<Rule>) -> Result<Unit, Error> {
+        let mut terms: Vec<Term> = vec![];
+
+        self.visit_with_pairs(pairs, &mut terms)?;
+
+        Ok(Unit { terms: terms })
+    }
+
+    fn visit_with_pairs(&mut self, pairs: Pairs<Rule>, terms: &mut Vec<Term>) -> Result<(), Error> {
+        for pair in pairs {
+            match pair.as_rule() {
+                Rule::main_term => self.visit_main_term(pair, terms)?,
+                _ => {
+                    println!("visit_with_pairs: unreachable rule: {:?}", pair);
+                    unreachable!()
+                }
+            };
+        }
 
         Ok(())
     }
@@ -346,7 +346,9 @@ impl Interpreter {
                     self.visit_prefix_symbol(inner_pair, term)?;
                 }
                 Rule::atom_symbol => {
-                    self.visit_atom_symbol(inner_pair, term)?;
+                    let atom = <Self as Visitor<Atom>>::visit(self, inner_pair)?;
+
+                    term.atom = Some(atom);
                 }
                 _ => unreachable!(),
             }
