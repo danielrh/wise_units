@@ -16,6 +16,11 @@ pub struct Digits(i32);
 pub struct Exponent(i32);
 pub struct Annotation(String);
 
+pub struct SimpleUnit {
+    prefix: Option<Prefix>,
+    atom: Option<Atom>,
+}
+
 impl Visitor<Digits> for Interpreter {
     fn visit(&mut self, pair: Pair<Rule>) -> Result<Digits, Error> {
         let span = pair.into_span();
@@ -325,6 +330,30 @@ impl Visitor<Prefix> for Interpreter {
     }
 }
 
+impl Visitor<SimpleUnit> for Interpreter {
+    fn visit(&mut self, pair: Pair<Rule>) -> Result<SimpleUnit, Error> {
+        let mut simple_unit = SimpleUnit { prefix: None, atom: None };
+
+        for inner_pair in pair.into_inner() {
+            match inner_pair.as_rule() {
+                Rule::prefix_symbol => {
+                    let prefix = <Self as Visitor<Prefix>>::visit(self, inner_pair)?;
+
+                    simple_unit.prefix = Some(prefix);
+                }
+                Rule::atom_symbol => {
+                    let atom = <Self as Visitor<Atom>>::visit(self, inner_pair)?;
+
+                    simple_unit.atom = Some(atom);
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        Ok(simple_unit)
+    }
+}
+
 pub struct Interpreter;
 
 impl Interpreter {
@@ -350,26 +379,6 @@ impl Interpreter {
         Ok(())
     }
 
-    fn visit_simple_unit(&mut self, pair: Pair<Rule>, term: &mut Term) -> Result<(), Error> {
-        for inner_pair in pair.into_inner() {
-            match inner_pair.as_rule() {
-                Rule::prefix_symbol => {
-                    let prefix = <Self as Visitor<Prefix>>::visit(self, inner_pair)?;
-
-                    term.prefix = Some(prefix);
-                }
-                Rule::atom_symbol => {
-                    let atom = <Self as Visitor<Atom>>::visit(self, inner_pair)?;
-
-                    term.atom = Some(atom);
-                }
-                _ => unreachable!(),
-            }
-        }
-
-        Ok(())
-    }
-
     // TODO
     // fn visit_special_unit(&mut self, su: &SpecialUnit) -> Term {
     //     // Term::new(None, None)
@@ -380,7 +389,10 @@ impl Interpreter {
         for inner_pair in pair.into_inner() {
             match inner_pair.as_rule() {
                 Rule::simple_unit => {
-                    self.visit_simple_unit(inner_pair, term)?;
+                    let simple_unit = <Self as Visitor<SimpleUnit>>::visit(self, inner_pair)?;
+
+                    term.atom = simple_unit.atom;
+                    term.prefix = simple_unit.prefix;
                 }
                 Rule::exponent => {
                     let exponent = <Self as Visitor<Exponent>>::visit(self, inner_pair)?;
