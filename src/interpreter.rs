@@ -13,6 +13,7 @@ pub trait Visitor<T> {
 // Wrapping these with structs to be able to impl Visitor for that type.
 pub struct Factor(u32);
 pub struct Digits(i32);
+pub struct Exponent(i32);
 
 impl Visitor<Digits> for Interpreter {
     fn visit(&mut self, pair: Pair<Rule>) -> Result<Digits, Error> {
@@ -37,6 +38,37 @@ impl Visitor<Factor> for Interpreter {
         })?;
 
         Ok(Factor(internal))
+    }
+}
+
+impl Visitor<Exponent> for Interpreter {
+    fn visit(&mut self, pair: Pair<Rule>) -> Result<Exponent, Error> {
+        let mut e = 1_i32;
+
+        for inner_pair in pair.into_inner() {
+            match inner_pair.as_rule() {
+                Rule::sign => {
+                    let span = inner_pair.into_span();
+                    let string = span.as_str();
+
+                    match string {
+                        "+" => {}
+                        "-" => {
+                            e = -e;
+                        }
+                        _ => unreachable!(),
+                    }
+                }
+                Rule::digits => {
+                    let digits = <Self as Visitor<Digits>>::visit(self, inner_pair)?;
+
+                    e *= digits.0;
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        Ok(Exponent(e))
     }
 }
 
@@ -307,37 +339,6 @@ impl Interpreter {
         Ok(())
     }
 
-    fn visit_exponent(&mut self, pair: Pair<Rule>, term: &mut Term) -> Result<(), Error> {
-        let mut e = 1_i32;
-
-        for inner_pair in pair.into_inner() {
-            match inner_pair.as_rule() {
-                Rule::sign => {
-                    let span = inner_pair.into_span();
-                    let string = span.as_str();
-
-                    match string {
-                        "+" => {}
-                        "-" => {
-                            e = -e;
-                        }
-                        _ => unreachable!(),
-                    }
-                }
-                Rule::digits => {
-                    let digits = <Self as Visitor<Digits>>::visit(self, inner_pair)?;
-
-                    e *= digits.0;
-                }
-                _ => unreachable!(),
-            }
-        }
-
-        term.exponent = e;
-
-        Ok(())
-    }
-
     fn visit_simple_unit(&mut self, pair: Pair<Rule>, term: &mut Term) -> Result<(), Error> {
         for inner_pair in pair.into_inner() {
             match inner_pair.as_rule() {
@@ -367,7 +368,9 @@ impl Interpreter {
                     self.visit_simple_unit(inner_pair, term)?;
                 }
                 Rule::exponent => {
-                    self.visit_exponent(inner_pair, term)?;
+                    let exponent = <Self as Visitor<Exponent>>::visit(self, inner_pair)?;
+
+                    term.exponent = exponent.0;
                 }
                 // Rule::special_unit => {}
                 _ => unreachable!(),
