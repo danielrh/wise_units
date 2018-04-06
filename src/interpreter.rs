@@ -280,32 +280,8 @@ impl Visitor<Atom> for Interpreter {
     }
 }
 
-pub struct Interpreter;
-
-impl Interpreter {
-    pub fn interpret(&mut self, pairs: Pairs<Rule>) -> Result<Unit, Error> {
-        let mut terms: Vec<Term> = vec![];
-
-        self.visit_with_pairs(pairs, &mut terms)?;
-
-        Ok(Unit { terms: terms })
-    }
-
-    fn visit_with_pairs(&mut self, pairs: Pairs<Rule>, terms: &mut Vec<Term>) -> Result<(), Error> {
-        for pair in pairs {
-            match pair.as_rule() {
-                Rule::main_term => self.visit_main_term(pair, terms)?,
-                _ => {
-                    println!("visit_with_pairs: unreachable rule: {:?}", pair);
-                    unreachable!()
-                }
-            };
-        }
-
-        Ok(())
-    }
-
-    fn visit_prefix_symbol(&mut self, pair: Pair<Rule>, term: &mut Term) -> Result<(), Error> {
+impl Visitor<Prefix> for Interpreter {
+    fn visit(&mut self, pair: Pair<Rule>) -> Result<Prefix, Error> {
         let prefix_str = pair.into_span();
 
         let prefix = match prefix_str.as_str() {
@@ -334,7 +310,31 @@ impl Interpreter {
             _                             => return Err(Error::UnknownUnitString(prefix_str.as_str().to_string()))
         };
 
-        term.prefix = Some(prefix);
+        Ok(prefix)
+    }
+}
+
+pub struct Interpreter;
+
+impl Interpreter {
+    pub fn interpret(&mut self, pairs: Pairs<Rule>) -> Result<Unit, Error> {
+        let mut terms: Vec<Term> = vec![];
+
+        self.visit_with_pairs(pairs, &mut terms)?;
+
+        Ok(Unit { terms: terms })
+    }
+
+    fn visit_with_pairs(&mut self, pairs: Pairs<Rule>, terms: &mut Vec<Term>) -> Result<(), Error> {
+        for pair in pairs {
+            match pair.as_rule() {
+                Rule::main_term => self.visit_main_term(pair, terms)?,
+                _ => {
+                    println!("visit_with_pairs: unreachable rule: {:?}", pair);
+                    unreachable!()
+                }
+            };
+        }
 
         Ok(())
     }
@@ -343,7 +343,9 @@ impl Interpreter {
         for inner_pair in pair.into_inner() {
             match inner_pair.as_rule() {
                 Rule::prefix_symbol => {
-                    self.visit_prefix_symbol(inner_pair, term)?;
+                    let prefix = <Self as Visitor<Prefix>>::visit(self, inner_pair)?;
+
+                    term.prefix = Some(prefix);
                 }
                 Rule::atom_symbol => {
                     let atom = <Self as Visitor<Atom>>::visit(self, inner_pair)?;
