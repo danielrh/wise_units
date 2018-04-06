@@ -1,9 +1,11 @@
 pub mod annotatable;
 pub mod basic_component;
+pub mod component_with_factor;
 pub mod simple_unit;
 
 pub use self::annotatable::Annotatable;
 pub use self::basic_component::BasicComponent;
+pub use self::component_with_factor::ComponentWithFactor;
 pub use self::simple_unit::SimpleUnit;
 
 use atom::Atom;
@@ -417,6 +419,30 @@ impl Visitor<BasicComponent> for Interpreter {
     }
 }
 
+impl Visitor<ComponentWithFactor> for Interpreter {
+    fn visit(&mut self, pair: Pair<Rule>) -> Result<ComponentWithFactor, Error> {
+        let mut cwf = ComponentWithFactor::new();
+
+        for inner_pair in pair.into_inner() {
+            match inner_pair.as_rule() {
+                Rule::factor => {
+                    let factor_struct = <Self as Visitor<Factor>>::visit(self, inner_pair)?;
+
+                    cwf.factor = factor_struct.0;
+                }
+                Rule::basic_component => {
+                    let bc = <Self as Visitor<BasicComponent>>::visit(self, inner_pair)?;
+
+                    cwf.terms.append(&mut bc.into());
+                }
+                _ => unreachable!(),
+            };
+        }
+
+        Ok(cwf)
+    }
+}
+
 pub struct Interpreter;
 
 impl Interpreter {
@@ -448,45 +474,17 @@ impl Interpreter {
     //     unimplemented!()
     // }
 
-    fn visit_component_with_factor(
+    fn visit_component(
         &mut self,
         pair: Pair<Rule>,
         terms: &mut Vec<Term>,
     ) -> Result<(), Error> {
-        let mut factor = 1;
-
-        for inner_pair in pair.into_inner() {
-            match inner_pair.as_rule() {
-                Rule::factor => {
-                    let factor_struct = <Self as Visitor<Factor>>::visit(self, inner_pair)?;
-
-                    factor = factor_struct.0;
-                }
-                Rule::basic_component => {
-                    let bc = <Self as Visitor<BasicComponent>>::visit(self, inner_pair)?;
-
-                    terms.append(&mut bc.into());
-                }
-                _ => unreachable!(),
-            };
-        }
-
-        if let Some(first_term) = terms.first_mut() {
-            first_term.factor = factor;
-        }
-
-        Ok(())
-    }
-
-    fn visit_component(
-        &mut self,
-        pair: Pair<Rule>,
-        mut terms: &mut Vec<Term>,
-    ) -> Result<(), Error> {
         for inner_pair in pair.into_inner() {
             match inner_pair.as_rule() {
                 Rule::component_with_factor => {
-                    self.visit_component_with_factor(inner_pair, &mut terms)?
+                    let bc = <Self as Visitor<ComponentWithFactor>>::visit(self, inner_pair)?;
+
+                    terms.append(&mut bc.into());
                 }
                 Rule::basic_component => {
                     let bc = <Self as Visitor<BasicComponent>>::visit(self, inner_pair)?;
