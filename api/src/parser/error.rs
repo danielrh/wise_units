@@ -4,13 +4,13 @@ use pest;
 ///
 #[derive(Fail, Debug)]
 pub enum Error {
-    #[fail(display = "Units are not compatible: {}, {}", lhs, rhs)]
+    #[fail(display = "Units are not compatible: '{}', '{}'", lhs, rhs)]
     IncompatibleUnitTypes { lhs: String, rhs: String },
 
-    #[fail(display = "Unable to parse expression: {}", expression)]
+    #[fail(display = "Unable to parse expression: '{}'", expression)]
     UnableToParse { expression: String },
 
-    #[fail(display = "Unknown unit string: {}", _0)]
+    #[fail(display = "Unknown unit string: '{}'", _0)]
     UnknownUnitString(String),
 }
 
