@@ -548,6 +548,7 @@ mod tests {
     use super::super::parser::{Composition, Dimension};
     use super::*;
     use field_eq::FieldEq;
+    use std::cmp::Ordering;
     use std::ops::{Div, Mul};
 
     #[test]
@@ -837,6 +838,13 @@ mod tests {
         let unit = Unit::from_str("10m").unwrap();
         let other = Unit::from_str("20m").unwrap();
         assert_eq!(unit.mul(other).to_string().as_str(), "10m.20m");
+    }
+
+    #[test]
+    fn validate_partial_cmp() {
+        let unit = Unit::from_str("1").unwrap();
+        let other = Unit::from_str("1").unwrap();
+        assert_eq!(unit.partial_cmp(&other), Some(Ordering::Equal));
     }
 
     #[cfg(feature = "with_serde")]
