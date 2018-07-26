@@ -98,6 +98,7 @@ mod tests {
     use unit::Unit;
 
     validate_decompose!(validate_decompose_pri_m, "m", "m");
+    validate_decompose!(validate_decompose_pri_m_dot_m, "m.m", "m.m");
     validate_decompose!(validate_decompose_pri_m2_per_m, "m2/m", "m2/m");
     validate_decompose!(validate_decompose_sec_m, "M", "m");
     validate_decompose!(validate_decompose_pri_km, "km", "km");
