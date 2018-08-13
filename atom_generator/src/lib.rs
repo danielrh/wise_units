@@ -16,6 +16,8 @@ mod generator;
 mod rust_structs;
 mod toml_structs;
 
+use std::path::PathBuf;
+
 /// Used by standard `wise_units` to define only UCUM atoms/units as part of
 /// the library. If you're not defining custom units, there's no reason to call
 /// this (unless you're `wise_units`).
@@ -30,8 +32,8 @@ pub fn build_ucum_atoms() {
 /// generate code from those and add them to the list of units to be used in
 /// your project.
 ///
-pub fn build_with_custom_atoms() {
-    let rust_atom_list = from_toml::custom_atoms::build_rust_atom_list();
+pub fn build_with_custom_atoms(custom_file_path: PathBuf) {
+    let rust_atom_list = from_toml::custom_atoms::build_rust_atom_list(custom_file_path);
 
     generator::generate_files(&rust_atom_list);
 }

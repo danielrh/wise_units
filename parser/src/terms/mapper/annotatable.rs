@@ -1,4 +1,5 @@
-use parser::{Atom, Prefix};
+use atom::Atom;
+use prefix::Prefix;
 
 pub(super) struct Annotatable {
     pub prefix: Option<Prefix>,

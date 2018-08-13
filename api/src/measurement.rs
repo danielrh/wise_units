@@ -1,13 +1,11 @@
 use convertible::Convertible;
 use field_eq::FieldEq;
-use parser::{Composable, Error};
-use reducible::Reducible;
 use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Sub};
 use std::str::FromStr;
-use ucum_unit::UcumUnit;
 use unit::Unit;
+use wise_units_parser::{Composable, Error, Reducible, UcumUnit};
 
 /// A Measurement is the prime interface for consumers of the library. It
 /// consists of some scalar value and a `Unit`, where the Unit represents the
@@ -596,9 +594,9 @@ impl<'a> Div<f64> for &'a Measurement {
 
 #[cfg(test)]
 mod tests {
-    use super::super::parser::{Atom, Term};
     use super::*;
     use unit::Unit;
+    use wise_units_parser::{Atom, Term};
 
     #[test]
     fn validate_new() {
@@ -1043,9 +1041,9 @@ mod tests {
     #[cfg(feature = "with_serde")]
     mod with_serde {
         use super::super::Measurement;
-        use parser::{Atom, Prefix, Term};
         use serde_json;
         use unit::Unit;
+        use wise_units_parser::{Atom, Prefix, Term};
 
         #[test]
         fn validate_serialization_empty_terms() {

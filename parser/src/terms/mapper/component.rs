@@ -1,5 +1,5 @@
-use parser::terms::mapper::Finishable;
-use parser::Term;
+use term::Term;
+use terms::mapper::Finishable;
 
 pub(super) struct Component {
     pub factor: Option<u32>,

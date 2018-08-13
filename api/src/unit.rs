@@ -1,11 +1,9 @@
 use decomposer::{Decomposable, ReductionDecomposer, SimpleDecomposer};
 use field_eq::FieldEq;
-use parser::{Composable, Composition, Error, Term};
-use reducible::Reducible;
 use std::fmt;
 use std::ops::{Div, Mul};
 use std::str::FromStr;
-use ucum_unit::UcumUnit;
+use wise_units_parser::{Composable, Composition, Error, Reducible, Term, UcumUnit};
 
 #[cfg_attr(feature = "with_serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug)]
@@ -263,7 +261,7 @@ impl FromStr for Unit {
     type Err = Error;
 
     fn from_str(expression: &str) -> Result<Self, Self::Err> {
-        let terms = super::parser::parse(expression)?;
+        let terms = ::wise_units_parser::parse(expression)?;
 
         Ok(Self::from(terms))
     }
@@ -545,11 +543,11 @@ mod tests {
         };
     }
 
-    use super::super::parser::{Composition, Dimension};
     use super::*;
     use field_eq::FieldEq;
     use std::cmp::Ordering;
     use std::ops::{Div, Mul};
+    use wise_units_parser::{Composition, Dimension};
 
     #[test]
     fn validate_from_str_error() {

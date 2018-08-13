@@ -1,4 +1,4 @@
-use parser::Term;
+use term::Term;
 
 pub(super) struct MainTerm {
     pub terms: Vec<Term>,

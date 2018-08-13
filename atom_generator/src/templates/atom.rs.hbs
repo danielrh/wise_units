@@ -7,11 +7,17 @@
 // generate them using underscores (to make them pass the clippy lint).
 #[cfg_attr(feature = "cargo-clippy", allow(unreadable_literal))]
 pub mod atom {
-    use parser::{Classification, Composable, Composition, definition::Definition, Dimension, function_set::FunctionSet, Property, UcumSymbol};
     use reducible::Reducible;
     use std::fmt;
-    use unit::Unit;
     use ucum_unit::UcumUnit;
+    use super::{Classification, Composition, definition::Definition, Dimension, function_set::FunctionSet, Property, UcumSymbol};
+    use composable::Composable;
+    use term::Term;
+
+    lazy_static! {
+        {{~ #each atoms }}
+        static ref {{ definition_constant }}: Definition = {{ definition_signature }};{{ /each }}
+    }
 
     #[cfg_attr(feature = "with_serde", derive(Serialize, Deserialize))]
     #[derive(Clone, Copy, Debug, Eq)]
@@ -21,13 +27,11 @@ pub mod atom {
     }
 
     impl Atom {
-        pub(crate) fn definition(self) -> Definition {
-            let result = match self {
+         pub(crate) fn definition(&self) -> &Definition {
+            match *self {
                 {{~ #each atoms }}
-                Atom::{{ type_name }} => {{ definition_signature }},{{ /each }}
-            };
-
-            result.expect("BUG! Bad Atom -> Definition mapping!")
+                Atom::{{ type_name }} => &*{{ definition_constant }},{{ /each }}
+            }
         }
 
         pub fn property(self) -> Property {
@@ -81,11 +85,11 @@ pub mod atom {
         }
 
         fn definition_value(&self) -> f64 {
-            self.definition().value()
+            self.definition().value
         }
 
-        fn definition_unit(&self) -> Unit {
-            self.definition().terms().to_vec().into()
+        fn definition_terms(&self) -> &[Term] {
+            self.definition().terms.as_slice()
         }
     }
 
@@ -153,7 +157,10 @@ pub mod atom {
                 Atom::Meter => Composition::new(Dimension::Length, 1),
                 Atom::Radian => Composition::new(Dimension::PlaneAngle, 1),
                 Atom::Second => Composition::new(Dimension::Time, 1),
-                _ => self.definition().terms().composition(),
+                _ => {
+                    let terms = self.definition().terms.as_slice();
+                    terms.composition()
+                },
             }
         }
     }

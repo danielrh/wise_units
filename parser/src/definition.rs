@@ -1,4 +1,5 @@
-use parser::{function_set::FunctionSet, Error, Term};
+use super::{Error, Term};
+use function_set::FunctionSet;
 use reducible::Reducible;
 
 /// A `Definition` is a slimmed-down version of a `Measurement` that is used to
@@ -7,11 +8,12 @@ use reducible::Reducible;
 ///
 #[derive(Debug)]
 pub(crate) struct Definition {
-    value: f64,
-    terms: Vec<Term>,
+    pub(crate) value: f64,
+    // TODO: Change to Option<Vec<Term>>
+    pub(crate) terms: Vec<Term>,
 
     /// Conversion functions only required for special (non-ratio based) atoms.
-    function_set: Option<FunctionSet>,
+    pub(crate) function_set: Option<FunctionSet>,
 }
 
 impl Definition {
@@ -29,12 +31,12 @@ impl Definition {
         })
     }
 
-    pub fn value(&self) -> f64 {
-        self.value
-    }
-
-    pub fn terms(&self) -> &[Term] {
-        &self.terms
+    pub(crate) fn new_only_value(value: f64) -> Self {
+        Self {
+            value,
+            terms: vec![],
+            function_set: None,
+        }
     }
 
     pub fn is_unity(&self) -> bool {

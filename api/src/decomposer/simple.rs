@@ -1,5 +1,5 @@
 use super::Decomposable;
-use parser::Term;
+use wise_units_parser::Term;
 
 pub struct Decomposer;
 

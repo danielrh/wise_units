@@ -73,7 +73,8 @@ fn generate_mapper_file(rust_atom_list: &RustAtomList) {
 }
 
 fn build_file_path(file_name: &str) -> PathBuf {
-    let dest_dir = env::var("OUT_DIR").unwrap();
+    // let dest_dir = env::var("OUT_DIR").unwrap();
+    let dest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
 
     Path::new(&dest_dir).join(file_name)
 }

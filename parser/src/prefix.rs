@@ -1,32 +1,35 @@
-use parser::ucum_symbol::UcumSymbol;
-use parser::{definition::Definition, Classification};
+use classification::Classification;
+use definition::Definition;
 use std::fmt;
-use unit::Unit;
+use term::Term;
+use ucum_symbol::UcumSymbol;
 
-const ATTO:  f64 = 1.0e-18;
-const CENTI: f64 = 1.0e-2;
-const DECI:  f64 = 1.0e-1;
-const DEKA:  f64 = 1.0e1;
-const EXA:   f64 = 1.0e18;
-const FEMTO: f64 = 1.0e-15;
-const GIBI:  f64 = 1_073_741_824.0;
-const GIGA:  f64 = 1.0e9;
-const HECTO: f64 = 1.0e2;
-const KIBI:  f64 = 1024.0;
-const KILO:  f64 = 1.0e3;
-const MEBI:  f64 = 1_048_576.0;
-const MEGA:  f64 = 1.0e6;
-const MICRO: f64 = 1.0e-6;
-const MILLI: f64 = 1.0e-3;
-const NANO:  f64 = 1.0e-9;
-const PETA:  f64 = 1.0e15;
-const PICO:  f64 = 1.0e-12;
-const TEBI:  f64 = 1_099_511_627_776.0;
-const TERA:  f64 = 1.0e12;
-const YOCTO: f64 = 1.0e-24;
-const YOTTA: f64 = 1.0e24;
-const ZEPTO: f64 = 1.0e-21;
-const ZETTA: f64 = 1.0e21;
+lazy_static! {
+    static ref ATTO:  Definition = Definition::new_only_value(1.0e-18);
+    static ref CENTI: Definition = Definition::new_only_value(1.0e-2);
+    static ref DECI:  Definition = Definition::new_only_value(1.0e-1);
+    static ref DEKA:  Definition = Definition::new_only_value(1.0e1);
+    static ref EXA:   Definition = Definition::new_only_value(1.0e18);
+    static ref FEMTO: Definition = Definition::new_only_value(1.0e-15);
+    static ref GIBI:  Definition = Definition::new_only_value(1_073_741_824.0);
+    static ref GIGA:  Definition = Definition::new_only_value(1.0e9);
+    static ref HECTO: Definition = Definition::new_only_value(1.0e2);
+    static ref KIBI:  Definition = Definition::new_only_value(1024.0);
+    static ref KILO:  Definition = Definition::new_only_value(1.0e3);
+    static ref MEBI:  Definition = Definition::new_only_value(1_048_576.0);
+    static ref MEGA:  Definition = Definition::new_only_value(1.0e6);
+    static ref MICRO: Definition = Definition::new_only_value(1.0e-6);
+    static ref MILLI: Definition = Definition::new_only_value(1.0e-3);
+    static ref NANO:  Definition = Definition::new_only_value(1.0e-9);
+    static ref PETA:  Definition = Definition::new_only_value(1.0e15);
+    static ref PICO:  Definition = Definition::new_only_value(1.0e-12);
+    static ref TEBI:  Definition = Definition::new_only_value(1_099_511_627_776.0);
+    static ref TERA:  Definition = Definition::new_only_value(1.0e12);
+    static ref YOCTO: Definition = Definition::new_only_value(1.0e-24);
+    static ref YOTTA: Definition = Definition::new_only_value(1.0e24);
+    static ref ZEPTO: Definition = Definition::new_only_value(1.0e-21);
+    static ref ZETTA: Definition = Definition::new_only_value(1.0e21);
+}
 
 /// A `Prefix` is essentially a multiplier for an `Atom` within a `Term`; ex.
 /// the "c" in "cm" modifies meter by 0.01. The UCUM spec says these should
@@ -60,6 +63,37 @@ pub enum Prefix {
     Yotta,
     Zepto,
     Zetta,
+}
+
+impl Prefix {
+    pub(crate) fn definition(&self) -> &Definition {
+        match *self {
+            Prefix::Atto  => &*ATTO,
+            Prefix::Centi => &*CENTI,
+            Prefix::Deci  => &*DECI,
+            Prefix::Deka  => &*DEKA,
+            Prefix::Exa   => &*EXA,
+            Prefix::Femto => &*FEMTO,
+            Prefix::Gibi  => &*GIBI,
+            Prefix::Giga  => &*GIGA,
+            Prefix::Hecto => &*HECTO,
+            Prefix::Kibi  => &*KIBI,
+            Prefix::Kilo  => &*KILO,
+            Prefix::Mebi  => &*MEBI,
+            Prefix::Mega  => &*MEGA,
+            Prefix::Micro => &*MICRO,
+            Prefix::Milli => &*MILLI,
+            Prefix::Nano  => &*NANO,
+            Prefix::Peta  => &*PETA,
+            Prefix::Pico  => &*PICO,
+            Prefix::Tebi  => &*TEBI,
+            Prefix::Tera  => &*TERA,
+            Prefix::Yocto => &*YOCTO,
+            Prefix::Yotta => &*YOTTA,
+            Prefix::Zepto => &*ZEPTO,
+            Prefix::Zetta => &*ZETTA,
+        }
+    }
 }
 
 impl UcumSymbol for Prefix {
@@ -163,41 +197,12 @@ impl UcumSymbol for Prefix {
         Some(code)
     }
 
-    /// The numeric value that each `Prefix` represents.
-    ///
     fn definition_value(&self) -> f64 {
-        match *self {
-            Prefix::Atto  => ATTO,
-            Prefix::Centi => CENTI,
-            Prefix::Deci  => DECI,
-            Prefix::Deka  => DEKA,
-            Prefix::Exa   => EXA,
-            Prefix::Femto => FEMTO,
-            Prefix::Gibi  => GIBI,
-            Prefix::Giga  => GIGA,
-            Prefix::Hecto => HECTO,
-            Prefix::Kibi  => KIBI,
-            Prefix::Kilo  => KILO,
-            Prefix::Mebi  => MEBI,
-            Prefix::Mega  => MEGA,
-            Prefix::Micro => MICRO,
-            Prefix::Milli => MILLI,
-            Prefix::Nano  => NANO,
-            Prefix::Peta  => PETA,
-            Prefix::Pico  => PICO,
-            Prefix::Tebi  => TEBI,
-            Prefix::Tera  => TERA,
-            Prefix::Yocto => YOCTO,
-            Prefix::Yotta => YOTTA,
-            Prefix::Zepto => ZEPTO,
-            Prefix::Zetta => ZETTA,
-        }
+        self.definition().value
     }
 
-    fn definition_unit(&self) -> Unit {
-        let definition = Definition::default();
-
-        Unit::from(definition.terms().to_vec())
+    fn definition_terms(&self) -> &[Term] {
+        self.definition().terms.as_slice()
     }
 }
 
@@ -210,7 +215,7 @@ impl fmt::Display for Prefix {
 #[cfg(test)]
 mod tests {
     use super::Prefix;
-    use parser::ucum_symbol::UcumSymbol;
+    use ucum_symbol::UcumSymbol;
 
     macro_rules! validate_value {
         ($test_name:ident, $variant:ident, $value:expr) => {

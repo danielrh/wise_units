@@ -2,8 +2,8 @@
 //!
 #[cfg(test)]
 mod symbol_parser_test {
-    use parser::symbols::symbol_parser::{Rule, SymbolParser};
     use pest::Parser;
+    use symbols::symbol_parser::{Rule, SymbolParser};
 
     #[test]
     fn validate_prefixes() {

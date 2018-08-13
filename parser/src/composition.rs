@@ -71,8 +71,7 @@ impl IntoIterator for Composition {
 
 #[cfg(test)]
 mod tests {
-    use super::super::Dimension;
-    use super::Composition;
+    use super::{Dimension, Composition};
     use std::collections::BTreeMap;
 
     #[test]

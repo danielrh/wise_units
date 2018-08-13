@@ -1,5 +1,5 @@
 #[derive(Parser)]
-#[grammar = "parser/terms/term.pest"]
+#[grammar = "terms/term.pest"]
 pub(crate) struct TermParser;
 
 #[cfg(test)]

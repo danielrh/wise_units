@@ -30,6 +30,15 @@ macro_rules! validate_conversion {
     };
 }
 
+#[test]
+fn meow() {
+    let subject = Measurement::new(100.0, "[acr_us]").unwrap();
+    let converted = subject.convert_to("har").unwrap();
+    println!("CONVERTED: {}", converted.value);
+    assert_relative_eq!(converted.value, 40.468726098742515);
+    assert_ulps_eq!(converted.value, 40.468726098742515);
+}
+
 validate_conversion!(
     validate_conversion_meters_per_second_to_miles_per_hour_forward,
     validate_conversion_meters_per_second_to_miles_per_hour_back,

@@ -4,9 +4,11 @@
 //-----------------------------------------------------------------------------
 
 pub(super) mod mapper {
-    use parser::{Atom, Error, Prefix};
-    use parser::symbols::Symbol;
-    use parser::symbols::symbol_parser::Rule;
+    use atom::Atom;
+    use error::Error;
+    use prefix::Prefix;
+    use symbols::Symbol;
+    use symbols::symbol_parser::Rule;
     use pest::iterators::Pair;
 
     pub(in super::super) fn map(pair: Pair<Rule>) -> Result<Symbol, Error> {

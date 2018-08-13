@@ -22,7 +22,7 @@
 //! support for custom special units does not yet exist.
 //!
 
-use heck::CamelCase;
+use heck::{CamelCase, ShoutySnakeCase};
 use rust_structs::{RustAtom, RustFunctionSet};
 use toml_structs::{TomlAtom, TomlBaseUnit, TomlUnit};
 
@@ -34,16 +34,17 @@ pub(crate) mod custom_atoms;
 fn transform_base_units(atom_list_base_units: &[TomlBaseUnit]) -> Vec<RustAtom> {
     atom_list_base_units
         .iter()
-        .map(|bu| RustAtom {
-            type_name: bu.type_name(),
+        .map(|toml_base_unit| RustAtom {
+            type_name: toml_base_unit.type_name(),
             classification: "Si".to_string(),
-            dim: Some(bu.dim.clone()),
-            definition_signature: "Ok(Definition::default())".to_string(),
-            primary_code: bu.primary_code.clone(),
-            print_symbol: Some(bu.print_symbol.clone()),
-            property: bu.property.clone(),
-            names: bu.names.clone(),
-            secondary_code: Some(bu.secondary_code.clone()),
+            dim: Some(toml_base_unit.dim.clone()),
+            definition_constant: toml_base_unit.type_name().to_shouty_snake_case(),
+            definition_signature: "Definition { value: 1.0, terms: vec![Term::new(None, None)], function_set: None }".to_string(),
+            primary_code: toml_base_unit.primary_code.clone(),
+            print_symbol: Some(toml_base_unit.print_symbol.clone()),
+            property: toml_base_unit.property.clone(),
+            names: toml_base_unit.names.clone(),
+            secondary_code: Some(toml_base_unit.secondary_code.clone()),
             is_arbitrary: false,
             is_metric: true,
             is_special: false,
@@ -56,53 +57,65 @@ fn transform_base_units(atom_list_base_units: &[TomlBaseUnit]) -> Vec<RustAtom> 
 fn transform_units(atom_list_units: &[TomlUnit]) -> Vec<RustAtom> {
     atom_list_units
         .iter()
-        .map(|u| {
-            let definition_signature = if u.is_special {
-                let function_set = RustFunctionSet {
-                    convert_from: build_magnitude_function(&u.primary_code),
-                    convert_to: build_scalar_function(&u.primary_code),
-                };
-
-                let function = u.definition.function.clone().unwrap();
-                let function_set_string = build_function_set_string(&function_set);
-
+        .map(|toml_unit| {
+            let definition_signature = if toml_unit.is_special {
+                build_definition_special(&toml_unit)
+            } else if &toml_unit.primary_code == "[pi]" {
                 format!(
-                    "Definition::new({:?}, \"{}\", Some({}))",
-                    function.value,
-                    function.unit.clone(),
-                    function_set_string
+                    "Definition::new(::std::f64::consts::PI, \"{}\", None).{}",
+                    toml_unit.definition.unit.clone(),
+                    build_definition_expect(),
                 )
-            } else if &u.primary_code == "[pi]" {
-                format!(
-                    "Definition::new(::std::f64::consts::PI, \"{}\", None)",
-                    u.definition.unit.clone()
-                )
-            } else if u.definition.value.eq(&1.0_f64) && &u.definition.unit == "1" {
-                "Ok(Definition::default())".to_string()
+            } else if toml_unit.definition.value.eq(&1.0_f64) && &toml_unit.definition.unit == "1" {
+                "Definition::default()".to_string()
             } else {
                 format!(
-                    "Definition::new({:?}, \"{}\", None)",
-                    u.definition.value,
-                    u.definition.unit.clone()
+                    "Definition::new({:?}, \"{}\", None).{}",
+                    toml_unit.definition.value,
+                    toml_unit.definition.unit.clone(),
+                    build_definition_expect(),
                 )
             };
 
             RustAtom {
-                type_name: u.type_name(),
-                classification: u.classification.clone().to_camel_case(),
+                type_name: toml_unit.type_name(),
+                classification: toml_unit.classification.clone().to_camel_case(),
                 dim: None,
+                definition_constant: toml_unit.type_name().to_shouty_snake_case(),
                 definition_signature,
-                primary_code: u.primary_code.clone(),
-                print_symbol: u.print_symbol.clone(),
-                property: u.property.clone(),
-                names: u.names.clone(),
-                secondary_code: u.secondary_code.clone(),
-                is_arbitrary: u.is_arbitrary,
-                is_metric: u.is_metric,
-                is_special: u.is_special,
+                primary_code: toml_unit.primary_code.clone(),
+                print_symbol: toml_unit.print_symbol.clone(),
+                property: toml_unit.property.clone(),
+                names: toml_unit.names.clone(),
+                secondary_code: toml_unit.secondary_code.clone(),
+                is_arbitrary: toml_unit.is_arbitrary,
+                is_metric: toml_unit.is_metric,
+                is_special: toml_unit.is_special,
             }
         })
         .collect()
+}
+
+fn build_definition_special(toml_unit: &TomlUnit) -> String {
+    let function_set = RustFunctionSet {
+        convert_from: build_magnitude_function(&toml_unit.primary_code),
+        convert_to: build_scalar_function(&toml_unit.primary_code),
+    };
+
+    let function = toml_unit.definition.function.clone().unwrap();
+    let function_set_string = build_function_set_string(&function_set);
+
+    format!(
+        "Definition::new({:?}, \"{}\", Some({})).{}",
+        function.value,
+        function.unit.clone(),
+        function_set_string,
+        build_definition_expect(),
+    )
+}
+
+fn build_definition_expect() -> &'static str {
+    "expect(\"BUG! Bad Atom -> Definition mapping!\")"
 }
 
 /// Determines which function to generate for converting *from* the unit with

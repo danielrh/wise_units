@@ -3,6 +3,7 @@ pub(crate) struct RustAtom {
     pub type_name: String,
     pub classification: String,
     pub dim: Option<String>,
+    pub definition_constant: String,
     pub definition_signature: String,
     pub primary_code: String,
     pub print_symbol: Option<String>,

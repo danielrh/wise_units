@@ -2,9 +2,14 @@
 //!
 #[cfg(test)]
 mod atom_test {
-    use parser::{
-        Atom, Classification, Composable, Composition, Dimension, Prefix, Term, UcumSymbol,
-    };
+    use atom::Atom;
+    use classification::Classification;
+    use composable::Composable;
+    use composition::Composition;
+    use dimension::Dimension;
+    use prefix::Prefix;
+    use term::Term;
+    use ucum_symbol::UcumSymbol;
     use ucum_unit::UcumUnit;
 
     macro_rules! validate_definition {
@@ -19,8 +24,8 @@ mod atom_test {
                 let atom = Atom::$atom_name;
                 let expected = vec![$($expected_term),+];
 
-                assert_eq!(atom.definition().value(), $expected_value);
-                assert_eq!(atom.definition().terms(), expected.as_slice());
+                assert_eq!(atom.definition().value, $expected_value);
+                assert_eq!(atom.definition().terms, expected.as_slice());
             }
         };
     }
@@ -208,8 +213,8 @@ mod atom_test {
         let terms = vec![term!()];
 
         for base_atom in base_atoms {
-            assert_eq!(base_atom.definition().value(), 1.0);
-            assert_eq!(base_atom.definition().terms(), terms.as_slice());
+            assert_eq!(base_atom.definition().value, 1.0);
+            assert_eq!(base_atom.definition().terms, terms.as_slice());
         }
     }
 

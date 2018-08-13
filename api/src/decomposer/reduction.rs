@@ -1,7 +1,7 @@
 use super::Decomposable;
-use parser::Term;
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
+use wise_units_parser::Term;
 
 type Exponent = i32;
 type InnerCollection = BTreeMap<String, Exponent>;

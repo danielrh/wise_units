@@ -1,8 +1,6 @@
-use parser::ucum_symbol::UcumSymbol;
-use parser::{Atom, Composable, Composition, Prefix};
+use super::{Atom, Composable, Composition, Prefix, UcumUnit, UcumSymbol};
 use reducible::Reducible;
 use std::fmt;
-use ucum_unit::UcumUnit;
 
 /// A Term makes up an Atom (at its core) along with any Atom modifiers
 /// (anything that can change its scalar). It is, however, possible to have an
@@ -251,6 +249,9 @@ impl<'a> Composable for &'a [Term] {
     }
 }
 
+//-----------------------------------------------------------------------------
+// impl Default
+//-----------------------------------------------------------------------------
 impl ::std::default::Default for Term {
     fn default() -> Self {
         Self {
@@ -263,6 +264,9 @@ impl ::std::default::Default for Term {
     }
 }
 
+//-----------------------------------------------------------------------------
+// impl Display
+//-----------------------------------------------------------------------------
 impl fmt::Display for Term {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", extract_term_string(self))

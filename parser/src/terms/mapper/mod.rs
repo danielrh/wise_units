@@ -15,14 +15,14 @@ use self::component::Component;
 use self::finishable::Finishable;
 use self::main_term::MainTerm;
 use self::simple_unit::SimpleUnit;
-use parser::atom::Atom;
-use parser::error::Error;
-use parser::prefix::Prefix;
-use parser::symbols::mapper as symbol_mapper;
-use parser::symbols::symbol_parser::Rule as SymbolRule;
-use parser::symbols::symbol_parser::SymbolParser;
-use parser::term::Term;
-use parser::terms::term_parser::Rule;
+use atom::Atom;
+use error::Error;
+use prefix::Prefix;
+use symbols::mapper as symbol_mapper;
+use symbols::symbol_parser::Rule as SymbolRule;
+use symbols::symbol_parser::SymbolParser;
+use term::Term;
+use terms::term_parser::Rule;
 use pest::iterators::{Pair, Pairs};
 use pest::Parser;
 
@@ -317,8 +317,10 @@ fn flip_terms_exponents(terms: &mut Vec<Term>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use parser::terms::term_parser::{Rule, TermParser};
-    use parser::{Atom, Prefix, Term};
+    use terms::term_parser::{Rule, TermParser};
+    use atom::Atom;
+    use prefix::Prefix;
+    use term::Term;
     use pest::Parser;
 
     macro_rules! validate_interpret {

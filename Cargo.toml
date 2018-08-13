@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "api",
+  "parser",
   "atom_generator",
   "definition_fetcher",
 ]

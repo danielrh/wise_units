@@ -1,4 +1,5 @@
-use parser::{Atom, Prefix};
+use atom::Atom;
+use prefix::Prefix;
 
 // Technically there should never be a symbol without an atom.
 #[derive(Debug)]
