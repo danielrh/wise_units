@@ -1,3 +1,4 @@
+use num_rational::BigRational;
 use reducible::Reducible;
 use unit::Unit;
 
@@ -5,13 +6,25 @@ use unit::Unit;
 // impl Reducible
 //-----------------------------------------------------------------------------
 impl Reducible for Unit {
-    fn reduce_value(&self, value: f64) -> f64 {
+    fn reduce_value(&self, value: BigRational) -> BigRational {
+        self.reduce_value(&value)
+    }
+
+    /// Calculates `value` count of `self` in terms of `self`'s unit.
+    ///
+    fn calculate_magnitude(&self, value: BigRational) -> BigRational {
+        self.calculate_magnitude(&value)
+    }
+}
+
+impl<'a> Reducible<&'a BigRational> for Unit {
+    fn reduce_value(&self, value: &'a BigRational) -> BigRational {
         self.terms.reduce_value(value)
     }
 
     /// Calculates `value` count of `self` in terms of `self`'s unit.
     ///
-    fn calculate_magnitude(&self, value: f64) -> f64 {
+    fn calculate_magnitude(&self, value: &'a BigRational) -> BigRational {
         self.terms.calculate_magnitude(value)
     }
 }

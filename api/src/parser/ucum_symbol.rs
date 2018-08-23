@@ -1,3 +1,4 @@
+use num_rational::BigRational;
 use parser::Classification;
 use unit::Unit;
 
@@ -13,7 +14,7 @@ pub trait UcumSymbol: Send + Sync + Copy + Clone {
     /// (international inch) is defined as 2.54 cm; in that case, the
     /// `definition_value` for `[in_i]` is `2.54`.
     ///
-    fn definition_value(&self) -> f64;
+    fn definition_value(&self) -> BigRational;
 
     /// A `UcumSymbol`'s `definition_value` is the scalar value of how many
     /// unit this symbol can be expressed in. For example, an `[in_i]`

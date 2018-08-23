@@ -6,6 +6,13 @@ extern crate failure;
 #[macro_use]
 extern crate failure_derive;
 
+#[macro_use]
+extern crate lazy_static;
+extern crate num_bigint;
+extern crate num_integer;
+extern crate num_rational;
+extern crate num_traits;
+
 // Only include macros for testing
 #[cfg(test)]
 #[macro_use(consumes_to, fails_with, parses_to)]
@@ -38,6 +45,7 @@ pub mod convertible;
 pub mod decomposer;
 pub mod field_eq;
 pub mod measurement;
+pub mod num_help;
 pub mod unit;
 
 mod parser;

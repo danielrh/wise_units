@@ -1,3 +1,6 @@
+use num_bigint::BigInt;
+use num_help::{BigRationalPow, BR_1};
+use num_rational::BigRational;
 use parser::ucum_symbol::UcumSymbol;
 use parser::{Atom, Composable, Composition, Prefix};
 use reducible::Reducible;
@@ -134,12 +137,12 @@ impl UcumUnit for Term {
         }
     }
 
-    fn scalar(&self) -> f64 {
-        self.reduce_value(1.0)
+    fn scalar(&self) -> BigRational {
+        self.reduce_value(&*BR_1)
     }
 
-    fn magnitude(&self) -> f64 {
-        self.calculate_magnitude(self.scalar())
+    fn magnitude(&self) -> BigRational {
+        self.calculate_magnitude(&self.scalar())
     }
 }
 
@@ -147,54 +150,54 @@ impl UcumUnit for Term {
 // impl Reducible
 //-----------------------------------------------------------------------------
 fn combine_term_values(
-    calculated_atom: f64,
-    calculated_prefix: f64,
+    calculated_atom: BigRational,
+    calculated_prefix: BigRational,
     factor: Option<u32>,
     exponent: Option<i32>,
-) -> f64 {
-    let a_p_product = calculated_atom * calculated_prefix;
+) -> BigRational {
+    let atom_prefix_product: BigRational = calculated_atom * calculated_prefix;
 
     match factor {
         Some(f) => {
-            let product = a_p_product * f64::from(f);
+            let product: BigRational = atom_prefix_product * BigInt::from(f);
 
             match exponent {
-                Some(e) => product.powi(e),
+                Some(e) => product.pow(e),
                 None => product,
             }
         }
         None => match exponent {
-            Some(e) => a_p_product.powi(e),
-            None => a_p_product,
+            Some(e) => atom_prefix_product.pow(e),
+            None => atom_prefix_product,
         },
     }
 }
 
-impl Reducible for Term {
-    fn reduce_value(&self, value: f64) -> f64 {
-        let atom_scalar = self.atom.map_or(1.0, |a| a.reduce_value(value));
-        let prefix_scalar = self.prefix.map_or(1.0, |p| p.definition_value());
+impl<'a> Reducible<&'a BigRational> for Term {
+    fn reduce_value(&self, value: &'a BigRational) -> BigRational {
+        let atom_scalar = self.atom.map_or(BR_1.clone(), |a| a.reduce_value(value));
+        let prefix_scalar = self.prefix.map_or(BR_1.clone(), |p| p.definition_value().clone());
 
         combine_term_values(atom_scalar, prefix_scalar, self.factor, self.exponent)
     }
 
-    fn calculate_magnitude(&self, value: f64) -> f64 {
-        let atom_magnitude = self.atom.map_or(1.0, |a| a.calculate_magnitude(value));
-        let prefix_magnitude = self.prefix.map_or(1.0, |p| p.definition_value());
+    fn calculate_magnitude(&self, value: &'a BigRational) -> BigRational {
+        let atom_magnitude = self.atom.map_or(BR_1.clone(), |a| a.calculate_magnitude(value));
+        let prefix_magnitude = self.prefix.map_or(BR_1.clone(), |p| p.definition_value().clone());
 
         combine_term_values(atom_magnitude, prefix_magnitude, self.factor, self.exponent)
     }
 }
 
-impl Reducible for Vec<Term> {
-    fn reduce_value(&self, value: f64) -> f64 {
+impl<'a> Reducible<&'a BigRational> for Vec<Term> {
+    fn reduce_value(&self, value: &'a BigRational) -> BigRational {
         self.iter()
-            .fold(1.0, |acc, term| acc * term.reduce_value(value))
+            .fold(BR_1.clone(), |acc, term| acc * term.reduce_value(value))
     }
 
-    fn calculate_magnitude(&self, value: f64) -> f64 {
+    fn calculate_magnitude(&self, value: &'a BigRational) -> BigRational {
         self.iter()
-            .fold(1.0, |acc, term| acc * term.calculate_magnitude(value))
+            .fold(BR_1.clone(), |acc, term| acc * term.calculate_magnitude(value))
     }
 }
 

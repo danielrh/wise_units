@@ -52,6 +52,32 @@ macro_rules! term {
     };
 }
 
+macro_rules! big_rational_raw {
+    (@bigint bytes $primitive:expr) => {
+        BigInt::parse_bytes(b"$primitive", 10).unwrap()
+    };
+
+    (@bigint $primitive:expr) => {
+        BigInt::from($primitive)
+    };
+
+    (bytes $numerator:expr, bytes $denominator:expr) => {
+        BigRational::new_raw(big_rational_raw!(@bigint bytes $numerator), big_rational_raw!(@bigint bytes $denominator));
+    };
+
+    ($numerator:expr, bytes $denominator:expr) => {
+        BigRational::new_raw(big_rational_raw!(@bigint $numerator), big_rational_raw!(@bigint bytes $denominator));
+    };
+
+    (bytes $numerator:expr, $denominator:expr) => {
+        BigRational::new_raw(big_rational_raw!(@bigint bytes $numerator), big_rational_raw!(@bigint $denominator));
+    };
+
+    ($numerator:expr, $denominator:expr) => {
+        BigRational::new_raw(big_rational_raw!(@bigint $numerator), big_rational_raw!(@bigint $denominator));
+    };
+}
+
 #[cfg(test)]
 mod tests {
     use parser::{Atom, Prefix, Term};

@@ -1,4 +1,5 @@
 use measurement::Measurement;
+use num_rational::BigRational;
 use reducible::Reducible;
 use ucum_unit::UcumUnit;
 
@@ -41,8 +42,8 @@ impl UcumUnit for Measurement {
     /// assert!((sixty_five_f.scalar() - 291.483_333).abs() < 0.000_001);
     /// ```
     ///
-    fn scalar(&self) -> f64 {
-        self.reduce_value(self.value)
+    fn scalar(&self) -> BigRational {
+        self.reduce_value(&self.value)
     }
 
     /// This magnitude is the Measurement's value combined with any magnitude
@@ -66,8 +67,8 @@ impl UcumUnit for Measurement {
     /// assert!((sixty_five_f.magnitude() - 65.0).abs() < 0.000_001);
     /// ```
     ///
-    fn magnitude(&self) -> f64 {
-        self.calculate_magnitude(self.value)
+    fn magnitude(&self) -> BigRational {
+        self.calculate_magnitude(&self.value)
     }
 }
 

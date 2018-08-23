@@ -6,6 +6,8 @@ pub mod partial_ord;
 pub mod reducible;
 pub mod ucum_unit;
 
+use num_help::BR_1;
+use num_rational::BigRational;
 use parser::Error;
 use reducible::Reducible;
 use std::str::FromStr;
@@ -30,7 +32,7 @@ use unit::Unit;
 #[cfg_attr(feature = "with_serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug)]
 pub struct Measurement {
-    pub value: f64,
+    pub value: BigRational,
     pub unit: Unit,
 }
 
@@ -38,6 +40,7 @@ impl Measurement {
     /// Creates a new `Measurement` by parsing `expression` into a `Unit`.
     ///
     pub fn new(value: f64, expression: &str) -> Result<Self, Error> {
+        let value = BigRational::from_float(value).expect("valid float");
         let unit = Unit::from_str(expression)?;
 
         let m = Self { value, unit };
@@ -48,16 +51,16 @@ impl Measurement {
     /// The value of the `Measurement` in terms of `other_unit`. Only used for
     /// converting, and does not check the compatibility of units.
     ///
-    fn converted_scalar(&self, other_unit: &Unit) -> f64 {
+    fn converted_scalar(&self, other_unit: &Unit) -> BigRational {
         if self.is_special() && other_unit.is_special() {
-            let ts = self.unit.reduce_value(self.value);
+            let ts = self.unit.reduce_value(&self.value);
             other_unit.calculate_magnitude(ts)
         } else if self.is_special() {
-            self.unit.reduce_value(self.value)
+            self.unit.reduce_value(&self.value)
         } else if other_unit.is_special() {
-            other_unit.calculate_magnitude(self.value)
+            other_unit.calculate_magnitude(&self.value)
         } else {
-            self.scalar() / other_unit.reduce_value(1.0)
+            self.scalar() / other_unit.reduce_value(BR_1.clone())
         }
     }
 }

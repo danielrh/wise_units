@@ -1,3 +1,6 @@
+use num_help::BR_0;
+use num_rational::BigRational;
+use num_traits::identities::One;
 use parser::{function_set::FunctionSet, Error, Term};
 use reducible::Reducible;
 
@@ -7,7 +10,7 @@ use reducible::Reducible;
 ///
 #[derive(Debug)]
 pub(crate) struct Definition {
-    value: f64,
+    value: BigRational,
     terms: Vec<Term>,
 
     /// Conversion functions only required for special (non-ratio based) atoms.
@@ -16,10 +19,12 @@ pub(crate) struct Definition {
 
 impl Definition {
     pub(crate) fn new(
+        // TODO: change to BigRational
         value: f64,
         expression: &str,
         function_set: Option<FunctionSet>,
     ) -> Result<Self, Error> {
+        let value: BigRational = BigRational::from_float(value).unwrap_or(BR_0.clone());
         let terms = super::parse(expression)?;
 
         Ok(Self {
@@ -29,8 +34,8 @@ impl Definition {
         })
     }
 
-    pub fn value(&self) -> f64 {
-        self.value
+    pub fn value<'a>(&'a self) -> &'a BigRational {
+        &self.value
     }
 
     pub fn terms(&self) -> &[Term] {
@@ -42,30 +47,30 @@ impl Definition {
     }
 }
 
-impl Reducible for Definition {
-    fn reduce_value(&self, other_value: f64) -> f64 {
+impl<'a> Reducible<&'a BigRational> for Definition {
+    fn reduce_value(&self, other_value: &'a BigRational) -> BigRational {
         match self.function_set {
             None => {
                 if self.is_unity() {
-                    self.value
+                    self.value.clone()
                 } else {
-                    self.value * self.terms.reduce_value(other_value)
+                    &self.value * self.terms.reduce_value(&other_value)
                 }
             }
-            Some(ref f) => (f.convert_to)(other_value),
+            Some(ref f) => (f.convert_to)(other_value.clone()),
         }
     }
 
-    fn calculate_magnitude(&self, other_value: f64) -> f64 {
+    fn calculate_magnitude(&self, other_value: &'a BigRational) -> BigRational {
         match self.function_set {
             None => {
                 if self.is_unity() {
-                    self.value
+                    self.value.clone()
                 } else {
-                    self.value * self.terms.calculate_magnitude(other_value)
+                    &self.value * self.terms.calculate_magnitude(&other_value)
                 }
             }
-            Some(ref f) => (f.convert_from)(other_value),
+            Some(ref f) => (f.convert_from)(other_value.clone()),
         }
     }
 }
@@ -73,7 +78,7 @@ impl Reducible for Definition {
 impl Default for Definition {
     fn default() -> Self {
         Self {
-            value: 1.0,
+            value: One::one(),
             terms: vec![term!()],
             function_set: None,
         }

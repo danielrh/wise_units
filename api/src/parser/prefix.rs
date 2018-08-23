@@ -1,32 +1,36 @@
+use num_bigint::BigInt;
+use num_rational::BigRational;
 use parser::ucum_symbol::UcumSymbol;
 use parser::{definition::Definition, Classification};
 use std::fmt;
 use unit::Unit;
 
-const ATTO:  f64 = 1.0e-18;
-const CENTI: f64 = 1.0e-2;
-const DECI:  f64 = 1.0e-1;
-const DEKA:  f64 = 1.0e1;
-const EXA:   f64 = 1.0e18;
-const FEMTO: f64 = 1.0e-15;
-const GIBI:  f64 = 1_073_741_824.0;
-const GIGA:  f64 = 1.0e9;
-const HECTO: f64 = 1.0e2;
-const KIBI:  f64 = 1024.0;
-const KILO:  f64 = 1.0e3;
-const MEBI:  f64 = 1_048_576.0;
-const MEGA:  f64 = 1.0e6;
-const MICRO: f64 = 1.0e-6;
-const MILLI: f64 = 1.0e-3;
-const NANO:  f64 = 1.0e-9;
-const PETA:  f64 = 1.0e15;
-const PICO:  f64 = 1.0e-12;
-const TEBI:  f64 = 1_099_511_627_776.0;
-const TERA:  f64 = 1.0e12;
-const YOCTO: f64 = 1.0e-24;
-const YOTTA: f64 = 1.0e24;
-const ZEPTO: f64 = 1.0e-21;
-const ZETTA: f64 = 1.0e21;
+lazy_static! { static ref YOTTA:  BigRational = big_rational_raw!(bytes 1_000_000_000_000_000_000_000_000, 1); }
+lazy_static! { static ref ZETTA:  BigRational = big_rational_raw!(bytes 1_000_000_000_000_000_000_000, 1); }
+lazy_static! { static ref EXA:    BigRational = big_rational_raw!(1_000_000_000_000_000_000u64, 1); }
+lazy_static! { static ref PETA:   BigRational = big_rational_raw!(1_000_000_000_000_000u64, 1); }
+lazy_static! { static ref TERA:   BigRational = big_rational_raw!(1_000_000_000_000u64, 1); }
+lazy_static! { static ref GIGA:   BigRational = big_rational_raw!(1_000_000_000, 1); }
+lazy_static! { static ref MEGA:   BigRational = big_rational_raw!(1_000_000, 1); }
+lazy_static! { static ref KILO:   BigRational = big_rational_raw!(1_000, 1); }
+lazy_static! { static ref HECTO:  BigRational = big_rational_raw!(100, 1); }
+lazy_static! { static ref DEKA:   BigRational = big_rational_raw!(10, 1); }
+
+lazy_static! { static ref TEBI:   BigRational = big_rational_raw!(1_099_511_627_776u64, 1); }
+lazy_static! { static ref GIBI:   BigRational = big_rational_raw!(1_073_741_824, 1); }
+lazy_static! { static ref MEBI:   BigRational = big_rational_raw!(1_048_576, 1); }
+lazy_static! { static ref KIBI:   BigRational = big_rational_raw!(1024, 1); }
+
+lazy_static! { static ref DECI:   BigRational = big_rational_raw!(1, 100); }
+lazy_static! { static ref CENTI:  BigRational = big_rational_raw!(1, 100); }
+lazy_static! { static ref MILLI:  BigRational = big_rational_raw!(1, 1000); }
+lazy_static! { static ref MICRO:  BigRational = big_rational_raw!(1, 1_000_000); }
+lazy_static! { static ref NANO:   BigRational = big_rational_raw!(1, 1_000_000_000); }
+lazy_static! { static ref PICO:   BigRational = big_rational_raw!(1, 1_000_000_000_000u64); }
+lazy_static! { static ref FEMTO:  BigRational = big_rational_raw!(1, 1_000_000_000_000_000u64); }
+lazy_static! { static ref ATTO:   BigRational = big_rational_raw!(1, 1_000_000_000_000_000_000u64); }
+lazy_static! { static ref ZEPTO:  BigRational = big_rational_raw!(1, bytes 1_000_000_000_000_000_000_000); }
+lazy_static! { static ref YOCTO:  BigRational = big_rational_raw!(1, bytes 1_000_000_000_000_000_000_000_000); }
 
 /// A `Prefix` is essentially a multiplier for an `Atom` within a `Term`; ex.
 /// the "c" in "cm" modifies meter by 0.01. The UCUM spec says these should
@@ -165,32 +169,32 @@ impl UcumSymbol for Prefix {
 
     /// The numeric value that each `Prefix` represents.
     ///
-    fn definition_value(&self) -> f64 {
+    fn definition_value(&self) -> BigRational {
         match *self {
-            Prefix::Atto  => ATTO,
-            Prefix::Centi => CENTI,
-            Prefix::Deci  => DECI,
-            Prefix::Deka  => DEKA,
-            Prefix::Exa   => EXA,
-            Prefix::Femto => FEMTO,
-            Prefix::Gibi  => GIBI,
-            Prefix::Giga  => GIGA,
-            Prefix::Hecto => HECTO,
-            Prefix::Kibi  => KIBI,
-            Prefix::Kilo  => KILO,
-            Prefix::Mebi  => MEBI,
-            Prefix::Mega  => MEGA,
-            Prefix::Micro => MICRO,
-            Prefix::Milli => MILLI,
-            Prefix::Nano  => NANO,
-            Prefix::Peta  => PETA,
-            Prefix::Pico  => PICO,
-            Prefix::Tebi  => TEBI,
-            Prefix::Tera  => TERA,
-            Prefix::Yocto => YOCTO,
-            Prefix::Yotta => YOTTA,
-            Prefix::Zepto => ZEPTO,
-            Prefix::Zetta => ZETTA,
+            Prefix::Atto  => ATTO.clone(),
+            Prefix::Centi => CENTI.clone(),
+            Prefix::Deci  => DECI.clone(),
+            Prefix::Deka  => DEKA.clone(),
+            Prefix::Exa   => EXA.clone(),
+            Prefix::Femto => FEMTO.clone(),
+            Prefix::Gibi  => GIBI.clone(),
+            Prefix::Giga  => GIGA.clone(),
+            Prefix::Hecto => HECTO.clone(),
+            Prefix::Kibi  => KIBI.clone(),
+            Prefix::Kilo  => KILO.clone(),
+            Prefix::Mebi  => MEBI.clone(),
+            Prefix::Mega  => MEGA.clone(),
+            Prefix::Micro => MICRO.clone(),
+            Prefix::Milli => MILLI.clone(),
+            Prefix::Nano  => NANO.clone(),
+            Prefix::Peta  => PETA.clone(),
+            Prefix::Pico  => PICO.clone(),
+            Prefix::Tebi  => TEBI.clone(),
+            Prefix::Tera  => TERA.clone(),
+            Prefix::Yocto => YOCTO.clone(),
+            Prefix::Yotta => YOTTA.clone(),
+            Prefix::Zepto => ZEPTO.clone(),
+            Prefix::Zetta => ZETTA.clone(),
         }
     }
 

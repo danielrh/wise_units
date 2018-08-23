@@ -1,22 +1,34 @@
 use measurement::Measurement;
+use num_help::BR_1;
+use num_rational::BigRational;
 use reducible::Reducible;
 use ucum_unit::UcumUnit;
 
 impl Reducible for Measurement {
-    fn reduce_value(&self, value: f64) -> f64 {
+    fn reduce_value(&self, value: BigRational) -> BigRational {
+        self.reduce_value(&value)
+    }
+
+    fn calculate_magnitude(&self, value: BigRational) -> BigRational {
+        self.calculate_magnitude(&value)
+    }
+}
+
+impl<'a> Reducible<&'a BigRational> for Measurement {
+    fn reduce_value(&self, value: &'a BigRational) -> BigRational {
         if self.is_special() {
             self.unit.reduce_value(value)
         } else {
-            value * self.unit.reduce_value(1.0)
+            value * self.unit.reduce_value(&*BR_1)
         }
     }
 
-    fn calculate_magnitude(&self, value: f64) -> f64 {
+    fn calculate_magnitude(&self, value: &'a BigRational) -> BigRational {
         if self.is_special() {
             let scalar = self.scalar();
             self.unit.calculate_magnitude(scalar)
         } else {
-            value * self.unit.calculate_magnitude(1.0)
+            value * self.unit.calculate_magnitude(&*BR_1)
         }
     }
 }

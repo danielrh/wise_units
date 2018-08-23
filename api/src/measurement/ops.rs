@@ -1,5 +1,6 @@
 use convertible::Convertible;
 use measurement::Measurement;
+use num_rational::BigRational;
 use parser::Error;
 use std::ops::{Add, Div, Mul, Sub};
 
@@ -8,7 +9,7 @@ use std::ops::{Add, Div, Mul, Sub};
 //-----------------------------------------------------------------------------
 fn add_measurements(lhs: &Measurement, rhs: &Measurement) -> Result<Measurement, Error> {
     let rhs_converted = rhs.convert_to(&lhs.unit)?;
-    let new_value = lhs.value + rhs_converted.value;
+    let new_value = &lhs.value + &rhs_converted.value;
 
     Ok(Measurement {
         value: new_value,
@@ -53,7 +54,7 @@ impl<'a> Add<Measurement> for &'a Measurement {
 //-----------------------------------------------------------------------------
 fn sub_measurements(lhs: &Measurement, rhs: &Measurement) -> Result<Measurement, Error> {
     let rhs_converted = rhs.convert_to(&lhs.unit)?;
-    let new_value = lhs.value - rhs_converted.value;
+    let new_value = &lhs.value - &rhs_converted.value;
 
     Ok(Measurement {
         value: new_value,
@@ -97,7 +98,7 @@ impl<'a> Sub<Measurement> for &'a Measurement {
 // impl Mul
 //-----------------------------------------------------------------------------
 fn mul_measurements(lhs: &Measurement, rhs: &Measurement) -> Measurement {
-    let new_value = lhs.value * rhs.value;
+    let new_value = &lhs.value * &rhs.value;
     let new_unit = &lhs.unit * &rhs.unit;
 
     Measurement {
@@ -142,23 +143,47 @@ impl<'a> Mul<Measurement> for &'a Measurement {
 /// `Measurement`.
 ///
 impl Mul<f64> for Measurement {
-    type Output = Self;
+    type Output = Option<Self>;
 
     fn mul(self, other: f64) -> Self::Output {
-        let new_value = self.value * other;
+        let self_ref = &self;
 
-        Self {
-            value: new_value,
-            unit: self.unit.clone(),
-        }
+        self_ref.mul(other)
     }
 }
 
 impl<'a> Mul<f64> for &'a Measurement {
-    type Output = Measurement;
+    type Output = Option<Measurement>;
 
     fn mul(self, other: f64) -> Self::Output {
-        let new_value = self.value * other;
+        let other_as_ratio = BigRational::from_float(other)?;
+        let new_value = &self.value * other_as_ratio;
+
+        Some(Measurement {
+            value: new_value,
+            unit: self.unit.clone(),
+        })
+    }
+}
+
+/// Multiplies the `Measurement`'s scalar by `other` and returns a new
+/// `Measurement`.
+///
+impl Mul<BigRational> for Measurement {
+    type Output = Self;
+
+    fn mul(self, other: BigRational) -> Self::Output {
+        let self_ref = &self;
+
+        self_ref.mul(other)
+    }
+}
+
+impl<'a> Mul<BigRational> for &'a Measurement {
+    type Output = Measurement;
+
+    fn mul(self, other: BigRational) -> Self::Output {
+        let new_value = &self.value * other;
 
         Measurement {
             value: new_value,
@@ -171,7 +196,7 @@ impl<'a> Mul<f64> for &'a Measurement {
 // impl Div
 //-----------------------------------------------------------------------------
 fn div_measurements(lhs: &Measurement, rhs: &Measurement) -> Measurement {
-    let new_value = lhs.value / rhs.value;
+    let new_value = &lhs.value / &rhs.value;
     let new_unit = &lhs.unit / &rhs.unit;
 
     Measurement {
@@ -216,9 +241,36 @@ impl<'a> Div<Measurement> for &'a Measurement {
 /// `Measurement`.
 ///
 impl Div<f64> for Measurement {
-    type Output = Self;
+    type Output = Option<Self>;
 
     fn div(self, other: f64) -> Self::Output {
+        let self_ref = &self;
+
+        self_ref.div(other)
+    }
+}
+
+impl<'a> Div<f64> for &'a Measurement {
+    type Output = Option<Measurement>;
+
+    fn div(self, other: f64) -> Self::Output {
+        let other_as_ratio = BigRational::from_float(other)?;
+        let new_value = &self.value / other_as_ratio;
+
+        Some(Measurement {
+            value: new_value,
+            unit: self.unit.clone(),
+        })
+    }
+}
+
+/// Divides the `Measurement`'s scalar by `other` and returns a new
+/// `Measurement`.
+///
+impl Div<BigRational> for Measurement {
+    type Output = Self;
+
+    fn div(self, other: BigRational) -> Self::Output {
         let new_value = self.value / other;
 
         Self {
@@ -228,11 +280,11 @@ impl Div<f64> for Measurement {
     }
 }
 
-impl<'a> Div<f64> for &'a Measurement {
+impl<'a> Div<BigRational> for &'a Measurement {
     type Output = Measurement;
 
-    fn div(self, other: f64) -> Self::Output {
-        let new_value = self.value / other;
+    fn div(self, other: BigRational) -> Self::Output {
+        let new_value = &self.value / other;
 
         Measurement {
             value: new_value,

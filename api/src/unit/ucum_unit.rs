@@ -1,4 +1,6 @@
 use reducible::Reducible;
+use num_help::BR_1;
+use num_rational::BigRational;
 use ucum_unit::UcumUnit;
 use unit::Unit;
 
@@ -72,8 +74,8 @@ impl UcumUnit for Unit {
     /// let unit = Unit::from_str("km/h").unwrap();
     /// assert_eq!(unit.scalar(), 0.277_777_777_777_777_8);
     ///
-    fn scalar(&self) -> f64 {
-        self.reduce_value(1.0)
+    fn scalar(&self) -> BigRational {
+        self.reduce_value(&*BR_1)
     }
 
     /// The scalar value of `self` in terms of `self`'s actual unit(s).
@@ -118,7 +120,7 @@ impl UcumUnit for Unit {
     /// let unit = Unit::from_str("10m/5s2").unwrap();
     /// assert_eq!(unit.magnitude(), 0.4);
     ///
-    fn magnitude(&self) -> f64 {
+    fn magnitude(&self) -> BigRational {
         self.calculate_magnitude(self.scalar())
     }
 }

@@ -7,11 +7,24 @@
 // generate them using underscores (to make them pass the clippy lint).
 #[cfg_attr(feature = "cargo-clippy", allow(unreadable_literal))]
 pub mod atom {
+    use num_bigint::BigInt;
+    use num_rational::BigRational;
     use parser::{Classification, Composable, Composition, definition::Definition, Dimension, function_set::FunctionSet, Property, UcumSymbol};
+    use num_help::{BigRationalPow, BigRationalSqrt, BR_1, BR_E, NaturalLog, Log2, Log10, Trigonometry};
     use reducible::Reducible;
     use std::fmt;
     use unit::Unit;
     use ucum_unit::UcumUnit;
+
+    lazy_static! { static ref BR_50000: BigRational = big_rational_raw!(50_000, 1); }
+    lazy_static! { static ref BR_1000: BigRational = big_rational_raw!(1000, 1); }
+    lazy_static! { static ref BR_100: BigRational = big_rational_raw!(100, 1); }
+    lazy_static! { static ref BR_10: BigRational = big_rational_raw!(10, 1); }
+    lazy_static! { static ref BR_2: BigRational = big_rational_raw!(2, 1); }
+
+    lazy_static! { static ref BR_459_67: BigRational = BigRational::from_float(459.67).unwrap(); }
+    lazy_static! { static ref BR_273_15: BigRational = BigRational::from_float(273.15).unwrap(); }
+    lazy_static! { static ref BR_0_8: BigRational = BigRational::from_float(0.8).unwrap(); }
 
     #[cfg_attr(feature = "with_serde", derive(Serialize, Deserialize))]
     #[derive(Clone, Copy, Debug, Eq)]
@@ -80,8 +93,8 @@ pub mod atom {
             }
         }
 
-        fn definition_value(&self) -> f64 {
-            self.definition().value()
+        fn definition_value(&self) -> BigRational {
+            self.definition().value().clone()
         }
 
         fn definition_unit(&self) -> Unit {
@@ -90,12 +103,12 @@ pub mod atom {
     }
 
     impl UcumUnit for Atom {
-        fn scalar(&self) -> f64 {
-            self.reduce_value(1.0)
+        fn scalar(&self) -> BigRational {
+            self.reduce_value(&*BR_1)
         }
 
-        fn magnitude(&self) -> f64 {
-            self.calculate_magnitude(self.scalar())
+        fn magnitude(&self) -> BigRational {
+            self.calculate_magnitude(&self.scalar())
         }
 
         fn is_arbitrary(&self) -> bool {
@@ -129,16 +142,16 @@ pub mod atom {
         }
     }
 
-    impl Reducible for Atom {
-        fn reduce_value(&self, value: f64) -> f64 {
-            self.definition().reduce_value(value)
+    impl<'a> Reducible<&'a BigRational> for Atom {
+        fn reduce_value(&self, value: &'a BigRational) -> BigRational {
+            self.definition().reduce_value(&value)
         }
 
-        fn calculate_magnitude(&self, value: f64) -> f64 {
+        fn calculate_magnitude(&self, value: &'a BigRational) -> BigRational {
             if self.is_special() {
-                self.definition().calculate_magnitude(value)
+                self.definition().calculate_magnitude(&value)
             } else {
-                1.0
+                BR_1.clone()
             }
         }
     }

@@ -5,6 +5,7 @@ extern crate heck;
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
+extern crate num_rational;
 extern crate regex;
 extern crate serde;
 #[macro_use]
