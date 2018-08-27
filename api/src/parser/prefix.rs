@@ -1,25 +1,24 @@
-use num_bigint::BigInt;
 use num_rational::BigRational;
 use parser::ucum_symbol::UcumSymbol;
 use parser::{definition::Definition, Classification};
 use std::fmt;
 use unit::Unit;
 
-lazy_static! { static ref YOTTA:  BigRational = big_rational_raw!(bytes 1_000_000_000_000_000_000_000_000, 1); }
-lazy_static! { static ref ZETTA:  BigRational = big_rational_raw!(bytes 1_000_000_000_000_000_000_000, 1); }
-lazy_static! { static ref EXA:    BigRational = big_rational_raw!(1_000_000_000_000_000_000u64, 1); }
-lazy_static! { static ref PETA:   BigRational = big_rational_raw!(1_000_000_000_000_000u64, 1); }
-lazy_static! { static ref TERA:   BigRational = big_rational_raw!(1_000_000_000_000u64, 1); }
-lazy_static! { static ref GIGA:   BigRational = big_rational_raw!(1_000_000_000, 1); }
-lazy_static! { static ref MEGA:   BigRational = big_rational_raw!(1_000_000, 1); }
-lazy_static! { static ref KILO:   BigRational = big_rational_raw!(1_000, 1); }
-lazy_static! { static ref HECTO:  BigRational = big_rational_raw!(100, 1); }
-lazy_static! { static ref DEKA:   BigRational = big_rational_raw!(10, 1); }
+lazy_static! { static ref YOTTA:  BigRational = big_rational_raw!(bytes 1_000_000_000_000_000_000_000_000); }
+lazy_static! { static ref ZETTA:  BigRational = big_rational_raw!(bytes 1_000_000_000_000_000_000_000); }
+lazy_static! { static ref EXA:    BigRational = big_rational_raw!(1_000_000_000_000_000_000u64); }
+lazy_static! { static ref PETA:   BigRational = big_rational_raw!(1_000_000_000_000_000u64); }
+lazy_static! { static ref TERA:   BigRational = big_rational_raw!(1_000_000_000_000u64); }
+lazy_static! { static ref GIGA:   BigRational = big_rational_raw!(1_000_000_000); }
+lazy_static! { static ref MEGA:   BigRational = big_rational_raw!(1_000_000); }
+lazy_static! { static ref KILO:   BigRational = big_rational_raw!(1_000); }
+lazy_static! { static ref HECTO:  BigRational = big_rational_raw!(100); }
+lazy_static! { static ref DEKA:   BigRational = big_rational_raw!(10); }
 
-lazy_static! { static ref TEBI:   BigRational = big_rational_raw!(1_099_511_627_776u64, 1); }
-lazy_static! { static ref GIBI:   BigRational = big_rational_raw!(1_073_741_824, 1); }
-lazy_static! { static ref MEBI:   BigRational = big_rational_raw!(1_048_576, 1); }
-lazy_static! { static ref KIBI:   BigRational = big_rational_raw!(1024, 1); }
+lazy_static! { static ref TEBI:   BigRational = big_rational_raw!(1_099_511_627_776u64); }
+lazy_static! { static ref GIBI:   BigRational = big_rational_raw!(1_073_741_824); }
+lazy_static! { static ref MEBI:   BigRational = big_rational_raw!(1_048_576); }
+lazy_static! { static ref KIBI:   BigRational = big_rational_raw!(1024); }
 
 lazy_static! { static ref DECI:   BigRational = big_rational_raw!(1, 100); }
 lazy_static! { static ref CENTI:  BigRational = big_rational_raw!(1, 100); }
@@ -213,7 +212,7 @@ impl fmt::Display for Prefix {
 
 #[cfg(test)]
 mod tests {
-    use super::Prefix;
+    use super::*;
     use parser::ucum_symbol::UcumSymbol;
 
     macro_rules! validate_value {
@@ -221,8 +220,7 @@ mod tests {
             #[test]
             fn $test_name() {
                 let prefix = Prefix::$variant;
-                assert_relative_eq!(prefix.definition_value(), $value);
-                assert_ulps_eq!(prefix.definition_value(), $value);
+                assert_eq!(prefix.definition_value(), $value);
             }
         };
     }
@@ -236,30 +234,30 @@ mod tests {
     }
 
     validate_values!(
-        validate_value_atto,  Atto,  1.0e-18;
-        validate_value_centi, Centi, 1.0e-2;
-        validate_value_deci,  Deci,  1.0e-1;
-        validate_value_deka,  Deka,  1.0e1;
-        validate_value_exa,   Exa,   1.0e18;
-        validate_value_femto, Femto, 1.0e-15;
-        validate_value_gibi,  Gibi,  1_073_741_824.0;
-        validate_value_giga,  Giga,  1.0e9;
-        validate_value_hecto, Hecto, 1.0e2;
-        validate_value_kibi,  Kibi,  1024.0;
-        validate_value_kilo,  Kilo,  1.0e3;
-        validate_value_mebi,  Mebi,  1_048_576.0;
-        validate_value_mega,  Mega,  1.0e6;
-        validate_value_micro, Micro, 1.0e-6;
-        validate_value_milli, Milli, 1.0e-3;
-        validate_value_nano,  Nano,  1.0e-9;
-        validate_value_peta,  Peta,  1.0e15;
-        validate_value_pico,  Pico,  1.0e-12;
-        validate_value_tebi,  Tebi,  1_099_511_627_776.0;
-        validate_value_tera,  Tera,  1.0e12;
-        validate_value_yocto, Yocto, 1.0e-24;
-        validate_value_yotta, Yotta, 1.0e24;
-        validate_value_zepto, Zepto, 1.0e-21;
-        validate_value_zetta, Zetta, 1.0e21;
+        validate_value_atto,  Atto,  ATTO.clone();
+        validate_value_centi, Centi, CENTI.clone();
+        validate_value_deci,  Deci,  DECI.clone();
+        validate_value_deka,  Deka,  DEKA.clone();
+        validate_value_exa,   Exa,   EXA.clone();
+        validate_value_femto, Femto, FEMTO.clone();
+        validate_value_gibi,  Gibi,  GIBI.clone();
+        validate_value_giga,  Giga,  GIGA.clone();
+        validate_value_hecto, Hecto, HECTO.clone();
+        validate_value_kibi,  Kibi,  KIBI.clone();
+        validate_value_kilo,  Kilo,  KILO.clone();
+        validate_value_mebi,  Mebi,  MEBI.clone();
+        validate_value_mega,  Mega,  MEGA.clone();
+        validate_value_micro, Micro, MICRO.clone();
+        validate_value_milli, Milli, MILLI.clone();
+        validate_value_nano,  Nano,  NANO.clone();
+        validate_value_peta,  Peta,  PETA.clone();
+        validate_value_pico,  Pico,  PICO.clone();
+        validate_value_tebi,  Tebi,  TEBI.clone();
+        validate_value_tera,  Tera,  TERA.clone();
+        validate_value_yocto, Yocto, YOCTO.clone();
+        validate_value_yotta, Yotta, YOTTA.clone();
+        validate_value_zepto, Zepto, ZEPTO.clone();
+        validate_value_zetta, Zetta, ZETTA.clone();
     );
 
     #[test]

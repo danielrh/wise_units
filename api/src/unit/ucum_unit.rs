@@ -127,6 +127,7 @@ impl UcumUnit for Unit {
 
 #[cfg(test)]
 mod tests {
+    use num_help::{BR_1, BR_PI};
     use std::str::FromStr;
     use ucum_unit::UcumUnit;
     use unit::Unit;
@@ -136,8 +137,7 @@ mod tests {
             #[test]
             fn $test_name() {
                 let unit = Unit::from_str($input_string).unwrap();
-                assert_relative_eq!(unit.scalar(), $expected_value);
-                assert_ulps_eq!(unit.scalar(), $expected_value);
+                assert_eq!(unit.scalar(), $expected_value);
             }
         };
     }
@@ -155,8 +155,7 @@ mod tests {
             #[test]
             fn $test_name() {
                 let unit = Unit::from_str($input_string).unwrap();
-                assert_relative_eq!(unit.magnitude(), $expected_value);
-                assert_ulps_eq!(unit.magnitude(), $expected_value);
+                assert_eq!(unit.magnitude(), $expected_value);
             }
         };
     }
@@ -176,63 +175,63 @@ mod tests {
     }
 
     validate_scalars!(
-        validate_scalar_m, "m", 1.0;
-        validate_scalar_km, "km", 1000.0;
-        validate_scalar_m_minus_1, "m-1", 1.0;
-        validate_scalar_10m, "10m", 10.0;
-        validate_scalar_10km, "10km", 10_000.0;
-        validate_scalar_10km_minus_1, "10km-1", 0.000_1;
-        validate_scalar_10km_minus_1_m2, "10km-1.m2", 0.000_1;
-        validate_scalar_km_slash_m2_dot_cm, "km/m2.cm", 100_000.0;
-        validate_scalar_km_minus_1_slash_m2_dot_cm, "km-1/m2.cm", 0.1;
-        validate_scalar_m_slash_s2, "m/s2", 1.0;
-        validate_scalar_slash_1, "/1", 1.0;
-        validate_scalar_slash_m, "/m", 1.0;
-        validate_scalar_slash_annotation, "/{tot}", 1.0;
+        validate_scalar_m, "m", BR_1.clone();
+        validate_scalar_km, "km", big_rational_raw!(1000);
+        validate_scalar_m_minus_1, "m-1", BR_1.clone();
+        validate_scalar_10m, "10m", big_rational_raw!(10);
+        validate_scalar_10km, "10km", big_rational_raw!(10_000);
+        validate_scalar_10km_minus_1, "10km-1", big_rational_raw!(1, 10_000);
+        validate_scalar_10km_minus_1_m2, "10km-1.m2", big_rational_raw!(1, 10_000);
+        validate_scalar_km_slash_m2_dot_cm, "km/m2.cm", big_rational_raw!(100_000);
+        validate_scalar_km_minus_1_slash_m2_dot_cm, "km-1/m2.cm", big_rational_raw!(1, 10);
+        validate_scalar_m_slash_s2, "m/s2", BR_1.clone();
+        validate_scalar_slash_1, "/1", BR_1.clone();
+        validate_scalar_slash_m, "/m", BR_1.clone();
+        validate_scalar_slash_annotation, "/{tot}", BR_1.clone();
 
-        validate_scalar_liter, "l", 0.001;
-        validate_scalar_liter_caps, "L", 0.001;
-        validate_scalar_pi, "[pi]", ::std::f64::consts::PI;
-        validate_scalar_ten_pi, "10[pi]", 10.0 * ::std::f64::consts::PI;
-        validate_scalar_hectare, "har", 10_000.0;
-        validate_scalar_week, "wk", 604_800.0;
-        validate_scalar_kilogram, "kg", 1000.0;
-        validate_scalar_fahrenheit, "[degF]", 255.927_777_777_777_8;
+        validate_scalar_liter, "l", big_rational_raw!(1, 1000);
+        validate_scalar_liter_caps, "L", big_rational_raw!(1, 1000);
+        validate_scalar_pi, "[pi]", BR_PI.clone();
+        validate_scalar_ten_pi, "10[pi]", 10 * &*BR_PI;
+        validate_scalar_hectare, "har", big_rational_raw!(10_000);
+        validate_scalar_week, "wk", big_rational_raw!(604_800);
+        validate_scalar_kilogram, "kg", big_rational_raw!(1000);
+        validate_scalar_fahrenheit, "[degF]", big_rational_raw!(2_559_277_777_777_778, 10_000_000_000_000);
     );
 
     validate_magnitudes!(
-        validate_magnitude_m, "m", 1.0;
-        validate_magnitude_km, "km", 1000.0;
-        validate_magnitude_m_minus_1, "m-1", 1.0;
-        validate_magnitude_10m, "10m", 10.0;
-        validate_magnitude_10km, "10km", 10_000.0;
-        validate_magnitude_10km_minus_1, "10km-1", 0.000_1;
-        validate_magnitude_10km_minus_1_m2, "10km-1.m2", 0.000_1;
-        validate_magnitude_km_slash_m2_dot_cm, "km/m2.cm", 100_000.0;
-        validate_magnitude_km_minus_1_slash_m2_dot_cm, "km-1/m2.cm", 0.1;
-        validate_magnitude_m_slash_s2, "m/s2", 1.0;
-        validate_magnitude_slash_1, "/1", 1.0;
-        validate_magnitude_slash_m, "/m", 1.0;
-        validate_magnitude_slash_annotation, "/{tot}", 1.0;
+        validate_magnitude_m, "m", BR_1.clone();
+        validate_magnitude_km, "km", big_rational_raw!(1000);
+        validate_magnitude_m_minus_1, "m-1", BR_1.clone();
+        validate_magnitude_10m, "10m", big_rational_raw!(10);
+        validate_magnitude_10km, "10km", big_rational_raw!(10_000);
+        validate_magnitude_10km_minus_1, "10km-1", big_rational_raw!(1, 1000);
+        validate_magnitude_10km_minus_1_m2, "10km-1.m2", big_rational_raw!(1, 1000);
+        validate_magnitude_km_slash_m2_dot_cm, "km/m2.cm", big_rational_raw!(100_000);
+        validate_magnitude_km_minus_1_slash_m2_dot_cm, "km-1/m2.cm", big_rational_raw!(1, 10);
+        validate_magnitude_m_slash_s2, "m/s2", BR_1.clone();
+        validate_magnitude_slash_1, "/1", BR_1.clone();
+        validate_magnitude_slash_m, "/m", BR_1.clone();
+        validate_magnitude_slash_annotation, "/{tot}", BR_1.clone();
 
-        validate_magnitude_m2, "m2", 1.0;
-        validate_magnitude_m3, "m3", 1.0;
-        validate_magnitude_liter, "l", 1.0;
-        validate_magnitude_liter_caps, "L", 1.0;
-        validate_magnitude_8m_slash_4s, "8m/4s", 2.0;
-        validate_magnitude_8m_slash_4s2, "8m/4s2", 0.5;
+        validate_magnitude_m2, "m2", BR_1.clone();
+        validate_magnitude_m3, "m3", BR_1.clone();
+        validate_magnitude_liter, "l", BR_1.clone();
+        validate_magnitude_liter_caps, "L", BR_1.clone();
+        validate_magnitude_8m_slash_4s, "8m/4s", big_rational_raw!(2);
+        validate_magnitude_8m_slash_4s2, "8m/4s2", big_rational_raw!(1, 2);
 
-        validate_magnitude_pi, "[pi]", 1.0;
-        validate_magnitude_ten_pi, "10[pi]", 10.0;
+        validate_magnitude_pi, "[pi]", BR_1.clone();
+        validate_magnitude_ten_pi, "10[pi]", big_rational_raw!(10);
 
         // TODO: This doesn't parse (AGDEV-33099)
         // validate_magnitude_decare, "dar", 0.1;
-        validate_magnitude_dekare, "daar", 10.0;
-        validate_magnitude_hectare, "har", 100.0;
-        validate_magnitude_kilare, "kar", 1000.0;
+        validate_magnitude_dekare, "daar", big_rational_raw!(10);
+        validate_magnitude_hectare, "har", big_rational_raw!(100);
+        validate_magnitude_kilare, "kar", big_rational_raw!(1000);
 
-        validate_magnitude_week, "wk", 1.0;
-        validate_magnitude_kilogram, "kg", 1000.0;
-        validate_magnitude_fahrenheit, "[degF]", 1.000_000_000_000_056_8;
+        validate_magnitude_week, "wk", BR_1.clone();
+        validate_magnitude_kilogram, "kg", big_rational_raw!(1000);
+        validate_magnitude_fahrenheit, "[degF]", BR_1.clone();
     );
 }

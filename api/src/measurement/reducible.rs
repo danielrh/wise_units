@@ -35,6 +35,7 @@ impl<'a> Reducible<&'a BigRational> for Measurement {
 
 #[cfg(test)]
 mod tests {
+    use num_help::{BR_1, BR_PI};
     use reducible::Reducible;
     use measurement::Measurement;
 
@@ -42,8 +43,8 @@ mod tests {
         ($test_name:ident, $measurement_value:expr, $unit_str:expr, $expected_value:expr) => {
             #[test]
             fn $test_name() {
-                let measurement = Measurement::new($measurement_value, $unit_str).unwrap();
-                assert_relative_eq!(measurement.reduce_value(1.0), $expected_value);
+                let measurement = Measurement::new_try_unit($measurement_value, $unit_str).unwrap();
+                assert_eq!(measurement.reduce_value(&*BR_1), $expected_value);
             }
         };
     }
@@ -52,119 +53,119 @@ mod tests {
         ($test_name:ident, $measurement_value:expr, $unit_str:expr, $expected_value:expr) => {
             #[test]
             fn $test_name() {
-                let measurement = Measurement::new($measurement_value, $unit_str).unwrap();
-                assert_relative_eq!(measurement.calculate_magnitude(1.0), $expected_value);
+                let measurement = Measurement::new_try_unit($measurement_value, $unit_str).unwrap();
+                assert_eq!(measurement.calculate_magnitude(&*BR_1), $expected_value);
             }
         };
     }
 
     // reduce_value tests
-    validate_reduce_value!(validate_reduce_value_m, 1.0, "m", 1.0);
-    validate_reduce_value!(validate_reduce_value_km, 1.0, "km", 1000.0);
+    validate_reduce_value!(validate_reduce_value_m, 1, "m", BR_1.clone());
+    validate_reduce_value!(validate_reduce_value_km, 1, "km", big_rational_raw!(1000));
     validate_reduce_value!(
         validate_reduce_value_meter_minus1,
-        1.0,
+        1,
         "m-1",
-        1.0
+        BR_1.clone()
     );
     validate_reduce_value!(
         validate_reduce_value_meter_factor,
-        1.0,
+        1,
         "10m",
-        10.0
+        big_rational_raw!(10)
     );
     validate_reduce_value!(
         validate_reduce_value_kilometer_factor,
-        1.0,
+        1,
         "10km",
-        10_000.0
+        big_rational_raw!(10_000)
     );
     validate_reduce_value!(
         validate_reduce_value_kilometer_factor_exponent,
-        1.0,
+        1,
         "10km-1",
-        0.0001
+        big_rational_raw!(1, 10_000)
     );
-    validate_reduce_value!(validate_reduce_value_liter, 1.0, "L", 0.001);
+    validate_reduce_value!(validate_reduce_value_liter, 1, "L", big_rational_raw!(1, 1000));
     validate_reduce_value!(
         validate_reduce_value_pi,
-        1.0,
+        1,
         "[pi]",
-        ::std::f64::consts::PI
+        BR_PI.clone()
     );
     validate_reduce_value!(
         validate_reduce_value_pi_factor,
-        1.0,
+        1,
         "10[pi]",
-        ::std::f64::consts::PI * 10.0
+        &*BR_PI * 10
     );
-    validate_reduce_value!(validate_reduce_value_hectare, 1.0, "har", 10_000.0);
-    validate_reduce_value!(validate_reduce_value_week, 1.0, "wk", 604_800.0);
-    validate_reduce_value!(validate_reduce_value_kilogram, 1.0, "kg", 1000.0);
+    validate_reduce_value!(validate_reduce_value_hectare, 1, "har", big_rational_raw!(10_000));
+    validate_reduce_value!(validate_reduce_value_week, 1, "wk", big_rational_raw!(604_800));
+    validate_reduce_value!(validate_reduce_value_kilogram, 1, "kg", big_rational_raw!(1000));
     validate_reduce_value!(
         validate_reduce_value_fahrenheit,
-        1.0,
+        1,
         "[degF]",
-        255.927_777_777_777_8
+        big_rational_raw!(255_927_777_777_777_8, 10000000000000)
     );
 
     // magnitude tests
-    validate_calculate_magnitude!(validate_calculate_magnitude_meter, 1.0, "m", 1.0);
+    validate_calculate_magnitude!(validate_calculate_magnitude_meter, 1, "m", BR_1.clone());
     validate_calculate_magnitude!(
         validate_calculate_magnitude_kilometer,
-        1.0,
+        1,
         "km",
-        1000.0
+        big_rational_raw!(1000)
     );
     validate_calculate_magnitude!(
         validate_calculate_magnitude_meter_minus1,
-        1.0,
+        1,
         "m-1",
-        1.0
+        BR_1.clone()
     );
     validate_calculate_magnitude!(
         validate_calculate_magnitude_meter_factor,
-        1.0,
+        1,
         "10m",
-        10.0
+        big_rational_raw!(10)
     );
     validate_calculate_magnitude!(
         validate_calculate_magnitude_kilometer_factor,
-        1.0,
+        1,
         "10km",
-        10_000.0
+        big_rational_raw!(10_000)
     );
     validate_calculate_magnitude!(
         validate_calculate_magnitude_kilometer_factor_exponent,
-        1.0,
+        1,
         "10km-1",
-        0.000_1
+        big_rational_raw!(1, 10_000)
     );
-    validate_calculate_magnitude!(validate_calculate_magnitude_liter, 1.0, "L", 1.0);
-    validate_calculate_magnitude!(validate_calculate_magnitude_pi, 1.0, "[pi]", 1.0);
+    validate_calculate_magnitude!(validate_calculate_magnitude_liter, 1, "L", BR_1.clone());
+    validate_calculate_magnitude!(validate_calculate_magnitude_pi, 1, "[pi]", BR_1.clone());
     validate_calculate_magnitude!(
         validate_calculate_magnitude_pi_factor,
-        1.0,
+        1,
         "10[pi]",
-        10.0
+        big_rational_raw!(10)
     );
     validate_calculate_magnitude!(
         validate_calculate_magnitude_hectare,
-        1.0,
+        1,
         "har",
-        100.0
+        big_rational_raw!(100)
     );
-    validate_calculate_magnitude!(validate_calculate_magnitude_week, 1.0, "wk", 1.0);
+    validate_calculate_magnitude!(validate_calculate_magnitude_week, 1, "wk", BR_1.clone());
     validate_calculate_magnitude!(
         validate_calculate_magnitude_kilogram,
-        1.0,
+        1,
         "kg",
-        1000.0
+        big_rational_raw!(1000)
     );
     validate_calculate_magnitude!(
         validate_calculate_magnitude_fahrenheit,
-        1.0,
+        1,
         "[degF]",
-        1.000_000_000_000_056_8
+        BR_1.clone()
     );
 }

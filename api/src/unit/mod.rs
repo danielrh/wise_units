@@ -14,7 +14,7 @@ use decomposer::{Decomposable, ReductionDecomposer, SimpleDecomposer};
 use parser::Term;
 
 #[cfg_attr(feature = "with_serde", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug)]
+#[derive(Eq, Clone, Debug)]
 pub struct Unit {
     pub terms: Vec<Term>,
 }

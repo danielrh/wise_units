@@ -285,6 +285,7 @@ fn extract_term_string(term: &Term) -> String {
 #[cfg(test)]
 mod tests {
     use super::super::{Atom, Composable, Composition, Dimension, Prefix, Term};
+    use num_help::{BR_1, BR_PI};
     use reducible::Reducible;
 
     macro_rules! validate_display {
@@ -310,7 +311,7 @@ mod tests {
             #[test]
             fn $test_name() {
                 let term = $term;
-                assert_relative_eq!(term.reduce_value(1.0), $expected_value);
+                assert_eq!(term.reduce_value(&*BR_1), $expected_value);
             }
         };
     }
@@ -320,8 +321,8 @@ mod tests {
             #[test]
             fn $test_name() {
                 let term = $term;
-                let scalar = term.reduce_value(1.0);
-                assert_relative_eq!(term.calculate_magnitude(scalar), $expected_value);
+                let scalar = term.reduce_value(&*BR_1);
+                assert_eq!(term.calculate_magnitude(&scalar), $expected_value);
             }
         };
     }
@@ -345,97 +346,97 @@ mod tests {
     }
 
     // scalar tests
-    validate_reduce_value!(validate_reduce_value_meter, term!(Meter), 1.0);
-    validate_reduce_value!(validate_reduce_value_kilometer, term!(Kilo, Meter), 1000.0);
+    validate_reduce_value!(validate_reduce_value_meter, term!(Meter), big_rational_raw!(1));
+    validate_reduce_value!(validate_reduce_value_kilometer, term!(Kilo, Meter), big_rational_raw!(1000));
     validate_reduce_value!(
         validate_reduce_value_meter_minus1,
         term!(Meter, exponent: -1),
-        1.0
+        BR_1.clone()
     );
     validate_reduce_value!(
         validate_reduce_value_meter_factor,
         term!(Meter, factor: 10),
-        10.0
+        big_rational_raw!(10)
     );
     validate_reduce_value!(
         validate_reduce_value_kilometer_factor,
         term!(Kilo, Meter, factor: 10),
-        10_000.0
+        big_rational_raw!(10_000)
     );
     validate_reduce_value!(
         validate_reduce_value_kilometer_factor_exponent,
         term!(Kilo, Meter, exponent: -1, factor: 10),
-        0.0001
+        big_rational_raw!(1, 1000)
     );
-    validate_reduce_value!(validate_reduce_value_liter, term!(Liter), 0.001);
+    validate_reduce_value!(validate_reduce_value_liter, term!(Liter), big_rational_raw!(1, 100));
     validate_reduce_value!(
         validate_reduce_value_pi,
         term!(TheNumberPi),
-        ::std::f64::consts::PI
+        BR_PI.clone()
     );
     validate_reduce_value!(
         validate_reduce_value_pi_factor,
         term!(TheNumberPi, factor: 10),
-        ::std::f64::consts::PI * 10.0
+        BR_PI.clone() * 10
     );
-    validate_reduce_value!(validate_reduce_value_hectare, term!(Hecto, Are), 10_000.0);
-    validate_reduce_value!(validate_reduce_value_week, term!(Week), 604_800.0);
-    validate_reduce_value!(validate_reduce_value_kilogram, term!(Kilo, Gram), 1000.0);
+    validate_reduce_value!(validate_reduce_value_hectare, term!(Hecto, Are), big_rational_raw!(10_000));
+    validate_reduce_value!(validate_reduce_value_week, term!(Week), big_rational_raw!(604_800));
+    validate_reduce_value!(validate_reduce_value_kilogram, term!(Kilo, Gram), big_rational_raw!(1000));
     validate_reduce_value!(
         validate_reduce_value_fahrenheit,
         term!(DegreeFahrenheit),
-        255.927_777_777_777_8
+        big_rational_raw!(2_251_164_540_300_311, 8_796_093_022_208)
     );
 
     // magnitude tests
-    validate_calculate_magnitude!(validate_calculate_magnitude_meter, term!(Meter), 1.0);
+    validate_calculate_magnitude!(validate_calculate_magnitude_meter, term!(Meter), big_rational_raw!(1));
     validate_calculate_magnitude!(
         validate_calculate_magnitude_kilometer,
         term!(Kilo, Meter),
-        1000.0
+        big_rational_raw!(1000)
     );
     validate_calculate_magnitude!(
         validate_calculate_magnitude_meter_minus1,
         term!(Meter, exponent: -1),
-        1.0
+        big_rational_raw!(1)
     );
     validate_calculate_magnitude!(
         validate_calculate_magnitude_meter_factor,
         term!(Meter, factor: 10),
-        10.0
+        big_rational_raw!(10)
     );
     validate_calculate_magnitude!(
         validate_calculate_magnitude_kilometer_factor,
         term!(Kilo, Meter, factor: 10),
-        10_000.0
+        big_rational_raw!(10_000)
     );
     validate_calculate_magnitude!(
         validate_calculate_magnitude_kilometer_factor_exponent,
         term!(Kilo, Meter, exponent: -1, factor: 10),
-        0.000_1
+        big_rational_raw!(1, 1000)
     );
-    validate_calculate_magnitude!(validate_calculate_magnitude_liter, term!(Liter), 1.0);
-    validate_calculate_magnitude!(validate_calculate_magnitude_pi, term!(TheNumberPi), 1.0);
+    validate_calculate_magnitude!(validate_calculate_magnitude_liter, term!(Liter), big_rational_raw!(1));
+    validate_calculate_magnitude!(validate_calculate_magnitude_pi, term!(TheNumberPi), big_rational_raw!(1));
     validate_calculate_magnitude!(
         validate_calculate_magnitude_pi_factor,
         term!(TheNumberPi, factor: 10),
-        10.0
+        big_rational_raw!(10)
     );
     validate_calculate_magnitude!(
         validate_calculate_magnitude_hectare,
         term!(Hecto, Are),
-        100.0
+        big_rational_raw!(100)
     );
-    validate_calculate_magnitude!(validate_calculate_magnitude_week, term!(Week), 1.0);
+    validate_calculate_magnitude!(validate_calculate_magnitude_week, term!(Week), BR_1.clone());
     validate_calculate_magnitude!(
         validate_calculate_magnitude_kilogram,
         term!(Kilo, Gram),
-        1000.0
+        big_rational_raw!(1000)
     );
     validate_calculate_magnitude!(
         validate_calculate_magnitude_fahrenheit,
         term!(DegreeFahrenheit),
-        1.000_000_000_000_056_8
+        big_rational_raw!(1)
     );
 
     // Composition tests

@@ -142,48 +142,30 @@ impl<'a> Mul<Measurement> for &'a Measurement {
 /// Multiplies the `Measurement`'s scalar by `other` and returns a new
 /// `Measurement`.
 ///
-impl Mul<f64> for Measurement {
-    type Output = Option<Self>;
-
-    fn mul(self, other: f64) -> Self::Output {
-        let self_ref = &self;
-
-        self_ref.mul(other)
-    }
-}
-
-impl<'a> Mul<f64> for &'a Measurement {
-    type Output = Option<Measurement>;
-
-    fn mul(self, other: f64) -> Self::Output {
-        let other_as_ratio = BigRational::from_float(other)?;
-        let new_value = &self.value * other_as_ratio;
-
-        Some(Measurement {
-            value: new_value,
-            unit: self.unit.clone(),
-        })
-    }
-}
-
-/// Multiplies the `Measurement`'s scalar by `other` and returns a new
-/// `Measurement`.
-///
-impl Mul<BigRational> for Measurement {
+impl<'a, T> Mul<T> for Measurement
+where
+    T: Mul<BigRational, Output=BigRational>
+{
     type Output = Self;
 
-    fn mul(self, other: BigRational) -> Self::Output {
-        let self_ref = &self;
+    fn mul(self, other: T) -> Self::Output {
+        let new_value: BigRational = other * self.value;
 
-        self_ref.mul(other)
+        Measurement {
+            value: new_value,
+            unit: self.unit.clone(),
+        }
     }
 }
 
-impl<'a> Mul<BigRational> for &'a Measurement {
+impl<'a, T> Mul<T> for &'a Measurement
+where
+    T: Mul<&'a BigRational, Output=BigRational>
+{
     type Output = Measurement;
 
-    fn mul(self, other: BigRational) -> Self::Output {
-        let new_value = &self.value * other;
+    fn mul(self, other: T) -> Self::Output {
+        let new_value: BigRational = other * &self.value;
 
         Measurement {
             value: new_value,
@@ -240,51 +222,15 @@ impl<'a> Div<Measurement> for &'a Measurement {
 /// Divides the `Measurement`'s scalar by `other` and returns a new
 /// `Measurement`.
 ///
-impl Div<f64> for Measurement {
-    type Output = Option<Self>;
-
-    fn div(self, other: f64) -> Self::Output {
-        let self_ref = &self;
-
-        self_ref.div(other)
-    }
-}
-
-impl<'a> Div<f64> for &'a Measurement {
-    type Output = Option<Measurement>;
-
-    fn div(self, other: f64) -> Self::Output {
-        let other_as_ratio = BigRational::from_float(other)?;
-        let new_value = &self.value / other_as_ratio;
-
-        Some(Measurement {
-            value: new_value,
-            unit: self.unit.clone(),
-        })
-    }
-}
-
-/// Divides the `Measurement`'s scalar by `other` and returns a new
-/// `Measurement`.
-///
-impl Div<BigRational> for Measurement {
-    type Output = Self;
-
-    fn div(self, other: BigRational) -> Self::Output {
-        let new_value = self.value / other;
-
-        Self {
-            value: new_value,
-            unit: self.unit.clone(),
-        }
-    }
-}
-
-impl<'a> Div<BigRational> for &'a Measurement {
+impl<T> Div<T> for Measurement
+where
+    T: Clone + ::num_integer::Integer,
+    // BigRational: Div<T, Output=BigRational>,
+{
     type Output = Measurement;
 
-    fn div(self, other: BigRational) -> Self::Output {
-        let new_value = &self.value / other;
+    fn div(self, other: T) -> Self::Output {
+        let new_value: BigRational = self.value / other;
 
         Measurement {
             value: new_value,
@@ -293,46 +239,97 @@ impl<'a> Div<BigRational> for &'a Measurement {
     }
 }
 
+impl<'a, T> Div<T> for &'a Measurement
+where
+    T: Clone + ::num_integer::Integer,
+    // &'a BigRational: Div<T, Output=BigRational>
+{
+    type Output = Measurement;
+
+    fn div(self, other: T) -> Self::Output {
+        let new_value: BigRational = &self.value / other;
+
+        Measurement {
+            value: new_value,
+            unit: self.unit.clone(),
+        }
+    }
+}
+
+impl Div<f64> for Measurement {
+    type Output = Result<Measurement, Error>;
+
+    fn div(self, other: f64) -> Self::Output {
+        let new_value: BigRational = (self.value / other)?;
+
+        Ok(Measurement {
+            value: new_value,
+            unit: self.unit.clone(),
+        })
+    }
+}
+// impl<T> Div<T> for Measurement
+// where
+//     T: ::num_traits::Float,
+//     BigRational: Div<T, Output=Option<BigRational>>,
+// {
+//     type Output = Result<Measurement, Error>;
+
+//     fn div(self, other: T) -> Self::Output {
+//         let new_value: BigRational = (self.value / other)?;
+
+//         Ok(Measurement {
+//             value: new_value,
+//             unit: self.unit.clone(),
+//         })
+//     }
+// }
+
+
 #[cfg(test)]
 mod tests {
     use measurement::Measurement;
     use parser::{Atom, Term};
+    use std::str::FromStr;
+    use unit::Unit;
+
+    lazy_static! { static ref M: Unit = Unit::from_str("m").unwrap(); }
 
     mod add {
         use super::*;
 
         #[test]
         fn validate_add_owned() {
-            let m1 = Measurement::new(1.0, "m").unwrap();
-            let m2 = Measurement::new(2.0, "m").unwrap();
-            let expected = Measurement::new(3.0, "m").unwrap();
+            let m1 = Measurement::new(1, M.clone());
+            let m2 = Measurement::new(2, M.clone());
+            let expected = Measurement::new(3, M.clone());
 
             assert_eq!((m1 + m2).unwrap(), expected);
         }
 
         #[test]
         fn validate_add_borrowed() {
-            let m1 = Measurement::new(1.0, "m").unwrap();
-            let m2 = Measurement::new(2.0, "m").unwrap();
-            let expected = Measurement::new(3.0, "m").unwrap();
+            let m1 = Measurement::new(1, M.clone());
+            let m2 = Measurement::new(2, M.clone());
+            let expected = Measurement::new(3, M.clone());
 
             assert_eq!((&m1 + &m2).unwrap(), expected);
         }
 
         #[test]
         fn validate_add_owned_and_borrowed() {
-            let m1 = Measurement::new(1.0, "m").unwrap();
-            let m2 = Measurement::new(2.0, "m").unwrap();
-            let expected = Measurement::new(3.0, "m").unwrap();
+            let m1 = Measurement::new(1, M.clone());
+            let m2 = Measurement::new(2, M.clone());
+            let expected = Measurement::new(3, M.clone());
 
             assert_eq!((m1 + &m2).unwrap(), expected);
         }
 
         #[test]
         fn validate_add_borrowed_and_owned() {
-            let m1 = Measurement::new(1.0, "m").unwrap();
-            let m2 = Measurement::new(2.0, "m").unwrap();
-            let expected = Measurement::new(3.0, "m").unwrap();
+            let m1 = Measurement::new(1, M.clone());
+            let m2 = Measurement::new(2, M.clone());
+            let expected = Measurement::new(3, M.clone());
 
             assert_eq!((&m1 + m2).unwrap(), expected);
         }
@@ -343,36 +340,36 @@ mod tests {
 
         #[test]
         fn validate_sub_owned() {
-            let m1 = Measurement::new(1.0, "m").unwrap();
-            let m2 = Measurement::new(2.0, "m").unwrap();
-            let expected = Measurement::new(-1.0, "m").unwrap();
+            let m1 = Measurement::new(1, M.clone());
+            let m2 = Measurement::new(2, M.clone());
+            let expected = Measurement::new(-1, M.clone());
 
             assert_eq!((m1 - m2).unwrap(), expected);
         }
 
         #[test]
         fn validate_sub_borrowed() {
-            let m1 = Measurement::new(1.0, "m").unwrap();
-            let m2 = Measurement::new(2.0, "m").unwrap();
-            let expected = Measurement::new(-1.0, "m").unwrap();
+            let m1 = Measurement::new(1, M.clone());
+            let m2 = Measurement::new(2, M.clone());
+            let expected = Measurement::new(-1, M.clone());
 
             assert_eq!((&m1 - &m2).unwrap(), expected);
         }
 
         #[test]
         fn validate_sub_owned_and_borrowed() {
-            let m1 = Measurement::new(1.0, "m").unwrap();
-            let m2 = Measurement::new(2.0, "m").unwrap();
-            let expected = Measurement::new(-1.0, "m").unwrap();
+            let m1 = Measurement::new(1, M.clone());
+            let m2 = Measurement::new(2, M.clone());
+            let expected = Measurement::new(-1, M.clone());
 
             assert_eq!((m1 - &m2).unwrap(), expected);
         }
 
         #[test]
         fn validate_sub_borrowed_and_owned() {
-            let m1 = Measurement::new(1.0, "m").unwrap();
-            let m2 = Measurement::new(2.0, "m").unwrap();
-            let expected = Measurement::new(-1.0, "m").unwrap();
+            let m1 = Measurement::new(1, M.clone());
+            let m2 = Measurement::new(2, M.clone());
+            let expected = Measurement::new(-1, M.clone());
 
             assert_eq!((&m1 - m2).unwrap(), expected);
         }
@@ -384,11 +381,11 @@ mod tests {
 
         #[test]
         fn validate_mul_owned() {
-            let m1 = Measurement::new(2.0, "m").unwrap();
-            let m2 = Measurement::new(3.0, "m").unwrap();
+            let m1 = Measurement::new(2, M.clone());
+            let m2 = Measurement::new(3, M.clone());
             let r = m1 * m2;
 
-            assert_eq!(r.value, 6.0);
+            assert_eq!(r.value, big_rational_raw!(6));
 
             let terms = r.unit.terms;
             assert_eq!(terms.len(), 2);
@@ -400,11 +397,11 @@ mod tests {
 
         #[test]
         fn validate_mul_borrowed() {
-            let m1 = Measurement::new(2.0, "m").unwrap();
-            let m2 = Measurement::new(3.0, "m").unwrap();
+            let m1 = Measurement::new(2, M.clone());
+            let m2 = Measurement::new(3, M.clone());
             let r = &m1 * &m2;
 
-            assert_eq!(r.value, 6.0);
+            assert_eq!(r.value, big_rational_raw!(6));
 
             let terms = r.unit.terms;
             assert_eq!(terms.len(), 2);
@@ -416,11 +413,11 @@ mod tests {
 
         #[test]
         fn validate_mul_owned_and_borrowed() {
-            let m1 = Measurement::new(2.0, "m").unwrap();
-            let m2 = Measurement::new(3.0, "m").unwrap();
+            let m1 = Measurement::new(2, M.clone());
+            let m2 = Measurement::new(3, M.clone());
             let r = m1 * &m2;
 
-            assert_eq!(r.value, 6.0);
+            assert_eq!(r.value, big_rational_raw!(6));
 
             let terms = r.unit.terms;
             assert_eq!(terms.len(), 2);
@@ -432,11 +429,11 @@ mod tests {
 
         #[test]
         fn validate_mul_borrowed_and_owned() {
-            let m1 = Measurement::new(2.0, "m").unwrap();
-            let m2 = Measurement::new(3.0, "m").unwrap();
+            let m1 = Measurement::new(2, M.clone());
+            let m2 = Measurement::new(3, M.clone());
             let r = &m1 * m2;
 
-            assert_eq!(r.value, 6.0);
+            assert_eq!(r.value, big_rational_raw!(6));
 
             let terms = r.unit.terms;
             assert_eq!(terms.len(), 2);
@@ -448,10 +445,10 @@ mod tests {
 
         #[test]
         fn validate_mul_f64() {
-            let m = Measurement::new(10.0, "m").unwrap();
-            let expected = Measurement::new(200.0, "m").unwrap();
+            let m = Measurement::new(10, M.clone());
+            let expected = Measurement::new(200, M.clone());
 
-            assert_eq!(m.mul(20.0), expected);
+            assert_eq!(m.mul(20), expected);
         }
     }
 
@@ -461,11 +458,11 @@ mod tests {
 
         #[test]
         fn validate_div_owned() {
-            let m1 = Measurement::new(10.0, "m").unwrap();
-            let m2 = Measurement::new(2.0, "m").unwrap();
+            let m1 = Measurement::new(10, M.clone());
+            let m2 = Measurement::new(2, M.clone());
             let r = m1 / m2;
 
-            assert_eq!(r.value, 5.0);
+            assert_eq!(r.value, big_rational_raw!(5));
 
             let terms = r.unit.terms;
             assert_eq!(terms.len(), 2);
@@ -479,11 +476,11 @@ mod tests {
 
         #[test]
         fn validate_div_borrowed() {
-            let m1 = Measurement::new(10.0, "m").unwrap();
-            let m2 = Measurement::new(2.0, "m").unwrap();
+            let m1 = Measurement::new(10, M.clone());
+            let m2 = Measurement::new(2, M.clone());
             let r = &m1 / &m2;
 
-            assert_eq!(r.value, 5.0);
+            assert_eq!(r.value, big_rational_raw!(5));
 
             let terms = r.unit.terms;
             assert_eq!(terms.len(), 2);
@@ -497,11 +494,11 @@ mod tests {
 
         #[test]
         fn validate_div_owned_and_borrowed() {
-            let m1 = Measurement::new(10.0, "m").unwrap();
-            let m2 = Measurement::new(2.0, "m").unwrap();
+            let m1 = Measurement::new(10, M.clone());
+            let m2 = Measurement::new(2, M.clone());
             let r = m1 / &m2;
 
-            assert_eq!(r.value, 5.0);
+            assert_eq!(r.value, big_rational_raw!(5));
 
             let terms = r.unit.terms;
             assert_eq!(terms.len(), 2);
@@ -515,11 +512,11 @@ mod tests {
 
         #[test]
         fn validate_div_borrowed_and_owned() {
-            let m1 = Measurement::new(10.0, "m").unwrap();
-            let m2 = Measurement::new(2.0, "m").unwrap();
+            let m1 = Measurement::new(10, M.clone());
+            let m2 = Measurement::new(2, M.clone());
             let r = &m1 / m2;
 
-            assert_eq!(r.value, 5.0);
+            assert_eq!(r.value, big_rational_raw!(5));
 
             let terms = r.unit.terms;
             assert_eq!(terms.len(), 2);
@@ -533,10 +530,10 @@ mod tests {
 
         #[test]
         fn validate_div_f64() {
-            let m = Measurement::new(10.0, "m").unwrap();
-            let expected = Measurement::new(2.0, "m").unwrap();
+            let m = Measurement::new(10, M.clone());
+            let expected = Measurement::new(2, M.clone());
 
-            assert_eq!(m.div(5.0), expected);
+            assert_eq!(m.div(5.0).unwrap(), expected);
         }
     }
 }

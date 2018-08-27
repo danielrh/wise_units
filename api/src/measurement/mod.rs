@@ -6,13 +6,64 @@ pub mod partial_ord;
 pub mod reducible;
 pub mod ucum_unit;
 
-use num_help::BR_1;
+use num_help::{BR_1};
 use num_rational::BigRational;
 use parser::Error;
 use reducible::Reducible;
 use std::str::FromStr;
 use ucum_unit::UcumUnit;
 use unit::Unit;
+
+pub trait IntoMeasurementValue {
+    fn into_value(self) -> BigRational;
+}
+
+impl<V: Into<BigRational>> IntoMeasurementValue for V {
+    fn into_value(self) -> BigRational {
+        self.into()
+    }
+}
+
+// impl<V: Into<BigInt>> IntoMeasurementValue for V {
+//     fn into_value(self) -> BigRational {
+//         let numer = self.into();
+
+//         BigRational::from(numer)
+//     }
+// }
+
+pub trait TryIntoMeasurementValue {
+    fn try_into_value(self) -> Result<BigRational, Error>;
+}
+
+impl TryIntoMeasurementValue for f64 {
+    fn try_into_value(self) -> Result<BigRational, Error> {
+        // TODO: handle error
+        let value = BigRational::from_float(self).expect("valid float");
+
+        Ok(value)
+    }
+}
+
+pub trait IntoMeasurementUnit {
+    fn into_unit(self) -> Unit;
+}
+
+impl<U: Into<Unit>> IntoMeasurementUnit for U {
+    fn into_unit(self) -> Unit {
+        self.into()
+    }
+}
+
+pub trait TryIntoMeasurementUnit {
+    fn try_into_unit(self) -> Result<Unit, Error>;
+}
+
+impl<'a> TryIntoMeasurementUnit for &'a str {
+    fn try_into_unit(self) -> Result<Unit, Error> {
+        Unit::from_str(self)
+    }
+}
 
 /// A Measurement is the prime interface for consumers of the library. It
 /// consists of some scalar value and a `Unit`, where the Unit represents the
@@ -37,15 +88,34 @@ pub struct Measurement {
 }
 
 impl Measurement {
-    /// Creates a new `Measurement` by parsing `expression` into a `Unit`.
-    ///
-    pub fn new(value: f64, expression: &str) -> Result<Self, Error> {
-        let value = BigRational::from_float(value).expect("valid float");
-        let unit = Unit::from_str(expression)?;
+    pub fn new<V: IntoMeasurementValue, U: IntoMeasurementUnit>(value: V, unit: U) -> Measurement {
+        let value = value.into_value();
+        let unit = unit.into_unit();
 
-        let m = Self { value, unit };
+        Measurement { value, unit }
+    }
 
-        Ok(m)
+    pub fn try_new<V: TryIntoMeasurementValue, U: TryIntoMeasurementUnit>(value: V, unit: U) -> Result<Measurement, Error> {
+        // TODO: Handle error
+        let value = value.try_into_value().expect("TODO: HANDLE ME!");
+        let unit = unit.try_into_unit()?;
+
+        Ok(Measurement { value, unit })
+    }
+
+    pub fn new_try_unit<V: IntoMeasurementValue, U: TryIntoMeasurementUnit>(value: V, unit: U) -> Result<Measurement, Error> {
+        let value = value.into_value();
+        let unit = unit.try_into_unit()?;
+
+        Ok(Measurement { value, unit })
+    }
+
+    pub fn new_try_value<V: TryIntoMeasurementValue, U: IntoMeasurementUnit>(value: V, unit: U) -> Result<Measurement, Error> {
+        // TODO: Handle error
+        let value = value.try_into_value().expect("TODO: HANDLE ME!");
+        let unit = unit.into_unit();
+
+        Ok(Measurement { value, unit })
     }
 
     /// The value of the `Measurement` in terms of `other_unit`. Only used for
@@ -67,52 +137,57 @@ impl Measurement {
 
 #[cfg(test)]
 mod tests {
+    use num_help::BR_1;
     use std::str::FromStr;
     use super::super::parser::{Atom, Term};
     use super::*;
     use unit::Unit;
 
+    lazy_static! {
+        static ref METER: Unit = Unit::from_str("m").unwrap();
+    }
+
     #[test]
     fn validate_new() {
-        let m = Measurement::new(1.0, "m").unwrap();
+        let m = Measurement::new(BR_1.clone(), METER.clone());
 
         let expected_unit = Unit {
             terms: vec![term!(Meter)],
         };
 
-        assert_eq!(m.value, 1.0);
+        assert_eq!(m.value, BR_1.clone());
         assert_eq!(m.unit, expected_unit);
     }
 
     #[test]
     fn validate_converted_scalar() {
         // No special units
-        let m = Measurement::new(1.0, "m").unwrap();
-        let unit = Unit::from_str("m").unwrap();
-        assert_eq!(m.converted_scalar(&unit), 1.0);
+        let m = Measurement::new(BR_1.clone(), METER.clone());
+        let unit = METER.clone();
+        assert_eq!(m.converted_scalar(&unit), BR_1.clone());
 
-        let m = Measurement::new(1.0, "m").unwrap();
+        let m = Measurement::new(BR_1.clone(), METER.clone());
         let unit = Unit::from_str("km").unwrap();
-        assert_eq!(m.converted_scalar(&unit), 0.001);
+        assert_eq!(m.converted_scalar(&unit), big_rational_raw!(1, 1000));
 
-        let m = Measurement::new(1000.0, "m").unwrap();
+        let m = Measurement::new(1000, METER.clone());
         let unit = Unit::from_str("km").unwrap();
-        assert_eq!(m.converted_scalar(&unit), 1.0);
+        assert_eq!(m.converted_scalar(&unit), BR_1.clone());
 
         // Measurement unit is not special, but other_unit is
-        let m = Measurement::new(1.0, "K").unwrap();
+        let m = Measurement::new_try_unit(BR_1.clone(), "K").unwrap();
         let unit = Unit::from_str("Cel").unwrap();
-        assert_eq!(m.converted_scalar(&unit), -272.15);
+        assert_eq!(m.converted_scalar(&unit), big_rational_raw!(-27_215, 100));
 
         // Measurement unit is special, but other_unit is not
-        let m = Measurement::new(1.0, "Cel").unwrap();
+        let m = Measurement::new_try_unit(BR_1.clone(), "Cel").unwrap();
         let unit = Unit::from_str("K").unwrap();
-        assert_eq!(m.converted_scalar(&unit), 274.15);
+        assert_eq!(m.converted_scalar(&unit), big_rational_raw!(27_415, 100));
 
         // Measurement unit and other_unit are special
-        let m = Measurement::new(1.0, "Cel").unwrap();
+        let m = Measurement::new_try_unit(BR_1.clone(), "Cel").unwrap();
         let unit = Unit::from_str("[degF]").unwrap();
-        assert_eq!(m.converted_scalar(&unit), 33.799_999_999_999_955);
+        assert_eq!(m.converted_scalar(&unit), big_rational_raw!(338, 10));
     }
 
     #[cfg(feature = "with_serde")]

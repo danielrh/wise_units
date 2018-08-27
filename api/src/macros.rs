@@ -52,29 +52,39 @@ macro_rules! term {
     };
 }
 
+// #[cfg_attr(test, macro_export)]
+#[macro_export]
 macro_rules! big_rational_raw {
     (@bigint bytes $primitive:expr) => {
-        BigInt::parse_bytes(b"$primitive", 10).unwrap()
+        ::num_bigint::BigInt::parse_bytes(b"$primitive", 10).unwrap()
     };
 
     (@bigint $primitive:expr) => {
-        BigInt::from($primitive)
+        ::num_bigint::BigInt::from($primitive)
     };
 
     (bytes $numerator:expr, bytes $denominator:expr) => {
-        BigRational::new_raw(big_rational_raw!(@bigint bytes $numerator), big_rational_raw!(@bigint bytes $denominator));
+        ::num_rational::BigRational::new_raw(big_rational_raw!(@bigint bytes $numerator), big_rational_raw!(@bigint bytes $denominator));
     };
 
     ($numerator:expr, bytes $denominator:expr) => {
-        BigRational::new_raw(big_rational_raw!(@bigint $numerator), big_rational_raw!(@bigint bytes $denominator));
+        ::num_rational::BigRational::new_raw(big_rational_raw!(@bigint $numerator), big_rational_raw!(@bigint bytes $denominator));
     };
 
     (bytes $numerator:expr, $denominator:expr) => {
-        BigRational::new_raw(big_rational_raw!(@bigint bytes $numerator), big_rational_raw!(@bigint $denominator));
+        ::num_rational::BigRational::new_raw(big_rational_raw!(@bigint bytes $numerator), big_rational_raw!(@bigint $denominator));
     };
 
     ($numerator:expr, $denominator:expr) => {
-        BigRational::new_raw(big_rational_raw!(@bigint $numerator), big_rational_raw!(@bigint $denominator));
+        ::num_rational::BigRational::new_raw(big_rational_raw!(@bigint $numerator), big_rational_raw!(@bigint $denominator));
+    };
+
+    (bytes $numerator:expr) => {
+        ::num_rational::BigRational::new_raw(big_rational_raw!(@bigint bytes $numerator), ::num_bigint::BigInt::from(1));
+    };
+
+    ($numerator:expr) => {
+        ::num_rational::BigRational::new_raw(big_rational_raw!(@bigint $numerator), ::num_bigint::BigInt::from(1));
     };
 }
 

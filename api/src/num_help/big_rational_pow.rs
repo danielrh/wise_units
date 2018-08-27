@@ -1,4 +1,3 @@
-use num_bigint::BigInt;
 use num_rational::BigRational;
 use std::cmp::Ordering;
 use super::{BR_0, BR_1};

@@ -74,57 +74,58 @@ impl UcumUnit for Measurement {
 
 #[cfg(test)]
 mod tests {
+    use num_help::BR_1;
     use measurement::Measurement;
     use ucum_unit::UcumUnit;
 
     #[test]
     fn validate_scalar() {
-        let m = Measurement::new(1.0, "m").unwrap();
-        assert_ulps_eq!(m.scalar(), 1.0);
+        let m = Measurement::new_try_unit(1, "m").unwrap();
+        assert_eq!(m.scalar(), BR_1.clone());
 
-        let m = Measurement::new(2.3, "m").unwrap();
-        assert_ulps_eq!(m.scalar(), 2.3);
+        let m = Measurement::new_try_unit(big_rational_raw!(23, 10), "m").unwrap();
+        assert_eq!(m.scalar(), big_rational_raw!(23, 10));
 
-        let m = Measurement::new(1.0, "km").unwrap();
-        assert_ulps_eq!(m.scalar(), 1000.0);
+        let m = Measurement::new_try_unit(1, "km").unwrap();
+        assert_eq!(m.scalar(), big_rational_raw!(1000));
 
-        let m = Measurement::new(2.3, "km").unwrap();
-        assert_ulps_eq!(m.scalar(), 2300.0);
+        let m = Measurement::new_try_unit(big_rational_raw!(23, 10), "km").unwrap();
+        assert_eq!(m.scalar(), big_rational_raw!(2300));
 
-        let m = Measurement::new(1.0, "g/L").unwrap();
-        assert_ulps_eq!(m.scalar(), 1000.0);
+        let m = Measurement::new_try_unit(1, "g/L").unwrap();
+        assert_eq!(m.scalar(), big_rational_raw!(1000));
 
-        let m = Measurement::new(2.3, "g/L").unwrap();
-        assert_ulps_eq!(m.scalar(), 2300.0);
+        let m = Measurement::new_try_unit(big_rational_raw!(23, 10), "g/L").unwrap();
+        assert_eq!(m.scalar(), big_rational_raw!(2300));
 
-        let m = Measurement::new(20.0, "Cel").unwrap();
-        assert_ulps_eq!(m.scalar(), 293.15);
+        let m = Measurement::new_try_unit(20, "Cel").unwrap();
+        assert_eq!(m.scalar(), big_rational_raw!(29_315, 100));
     }
 
     #[test]
     fn validate_magnitude() {
-        let m = Measurement::new(1.0, "m").unwrap();
-        assert_ulps_eq!(m.magnitude(), 1.0);
+        let m = Measurement::new_try_unit(1, "m").unwrap();
+        assert_eq!(m.magnitude(), BR_1.clone());
 
-        let m = Measurement::new(2.3, "m").unwrap();
-        assert_ulps_eq!(m.magnitude(), 2.3);
+        let m = Measurement::new_try_unit(big_rational_raw!(23, 10), "m").unwrap();
+        assert_eq!(m.magnitude(), big_rational_raw!(23, 10));
 
-        let m = Measurement::new(1.0, "km").unwrap();
-        assert_ulps_eq!(m.magnitude(), 1000.0);
+        let m = Measurement::new_try_unit(1, "km").unwrap();
+        assert_eq!(m.magnitude(), big_rational_raw!(1000));
 
-        let m = Measurement::new(2.3, "km").unwrap();
-        assert_ulps_eq!(m.magnitude(), 2300.0);
+        let m = Measurement::new_try_unit(big_rational_raw!(23, 10), "km").unwrap();
+        assert_eq!(m.magnitude(), big_rational_raw!(2300));
 
-        let m = Measurement::new(1.0, "g/L").unwrap();
-        assert_ulps_eq!(m.magnitude(), 1.0);
+        let m = Measurement::new_try_unit(1, "g/L").unwrap();
+        assert_eq!(m.magnitude(), BR_1.clone());
 
-        let m = Measurement::new(2.3, "g/L").unwrap();
-        assert_ulps_eq!(m.magnitude(), 2.3);
+        let m = Measurement::new_try_unit(big_rational_raw!(23, 10), "g/L").unwrap();
+        assert_eq!(m.magnitude(), big_rational_raw!(23, 10));
 
-        let m = Measurement::new(20.0, "g/10L").unwrap();
-        assert_ulps_eq!(m.magnitude(), 2.0);
+        let m = Measurement::new_try_unit(20, "g/10L").unwrap();
+        assert_eq!(m.magnitude(), big_rational_raw!(2));
 
-        let m = Measurement::new(20.0, "Cel").unwrap();
-        assert_ulps_eq!(m.magnitude(), 20.0);
+        let m = Measurement::new_try_unit(20u8, "Cel").unwrap();
+        assert_eq!(m.magnitude(), big_rational_raw!(20));
     }
 }

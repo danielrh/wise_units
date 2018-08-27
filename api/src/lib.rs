@@ -1,6 +1,3 @@
-#[cfg(test)]
-#[macro_use]
-extern crate approx;
 extern crate failure;
 
 #[macro_use]

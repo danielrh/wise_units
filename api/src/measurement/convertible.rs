@@ -61,66 +61,72 @@ fn convert_measurement(lhs: &Measurement, dest_unit: &Unit) -> Result<Measuremen
 #[cfg(test)]
 mod tests {
     use super::*;
+    use num_help::BR_1;
+
+    lazy_static! {
+        static ref ONE_M: Measurement = Measurement::new_try_unit(1, "m").unwrap();
+        static ref ONE_THOUSAND_M: Measurement = Measurement::new_try_unit(1000, "m").unwrap();
+    }
 
     #[test]
     fn validate_convert_to_meter_to_meter_str() {
-        let meter = Measurement::new(1.0, "m").unwrap();
+        let meter = ONE_M.clone();
         let converted = meter.convert_to("m").unwrap();
         assert_eq!(converted, meter);
-        assert_eq!(converted.value, 1.0);
+        assert_eq!(converted.value, BR_1.clone());
     }
 
     #[test]
     fn validate_convert_to_meter_to_2meter_str() {
-        let meter = Measurement::new(1.0, "m").unwrap();
+        let meter = ONE_M.clone();
         let converted = meter.convert_to("2m").unwrap();
-        assert_eq!(converted.value, 0.5);
+        assert_eq!(converted.value, big_rational_raw!(1, 2));
     }
 
     #[test]
     fn validate_convert_to_meter_to_km_str() {
-        let meter = Measurement::new(1000.0, "m").unwrap();
+        let meter = ONE_THOUSAND_M.clone();
         let converted = meter.convert_to("km").unwrap();
-        assert_eq!(converted.value, 1.0);
+        assert_eq!(converted.value, BR_1.clone());
     }
 
     #[test]
     fn validate_convert_to_meter_to_2km_str() {
-        let meter = Measurement::new(1000.0, "m").unwrap();
+        let meter = ONE_THOUSAND_M.clone();
         let converted = meter.convert_to("2km").unwrap();
-        assert_eq!(converted.value, 0.5);
+        assert_eq!(converted.value, big_rational_raw!(1, 2));
     }
 
     #[test]
     fn validate_convert_to_meter_to_meter_unit() {
-        let meter = Measurement::new(1.0, "m").unwrap();
+        let meter = ONE_M.clone();
         let unit = Unit::from_str("m").unwrap();
         let converted = meter.convert_to(&unit).unwrap();
         assert_eq!(converted, meter);
-        assert_eq!(converted.value, 1.0);
+        assert_eq!(converted.value, BR_1.clone());
     }
 
     #[test]
     fn validate_convert_to_meter_to_2meter_unit() {
-        let meter = Measurement::new(1.0, "m").unwrap();
+        let meter = ONE_M.clone();
         let unit = Unit::from_str("2m").unwrap();
         let converted = meter.convert_to(&unit).unwrap();
-        assert_eq!(converted.value, 0.5);
+        assert_eq!(converted.value, big_rational_raw!(1, 2));
     }
 
     #[test]
     fn validate_convert_to_meter_to_km_unit() {
-        let meter = Measurement::new(1000.0, "m").unwrap();
+        let meter = ONE_THOUSAND_M.clone();
         let unit = Unit::from_str("km").unwrap();
         let converted = meter.convert_to(&unit).unwrap();
-        assert_eq!(converted.value, 1.0);
+        assert_eq!(converted.value, BR_1.clone());
     }
 
     #[test]
     fn validate_convert_to_meter_to_2km_unit() {
-        let meter = Measurement::new(1000.0, "m").unwrap();
+        let meter = ONE_THOUSAND_M.clone();
         let unit = Unit::from_str("2km").unwrap();
         let converted = meter.convert_to(&unit).unwrap();
-        assert_eq!(converted.value, 0.5);
+        assert_eq!(converted.value, big_rational_raw!(1, 2));
     }
 }

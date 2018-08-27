@@ -7,7 +7,6 @@
 // generate them using underscores (to make them pass the clippy lint).
 #[cfg_attr(feature = "cargo-clippy", allow(unreadable_literal))]
 pub mod atom {
-    use num_bigint::BigInt;
     use num_rational::BigRational;
     use parser::{Classification, Composable, Composition, definition::Definition, Dimension, function_set::FunctionSet, Property, UcumSymbol};
     use num_help::{BigRationalPow, BigRationalSqrt, BR_1, BR_E, NaturalLog, Log2, Log10, Trigonometry};

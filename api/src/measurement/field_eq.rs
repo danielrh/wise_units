@@ -41,20 +41,20 @@ mod tests {
 
     #[test]
     fn validate_field_eq() {
-        let measurement = Measurement::new(1.0, "ar").unwrap();
-        let other = Measurement::new(1.0, "ar").unwrap();
+        let measurement = Measurement::new_try_unit(1, "ar").unwrap();
+        let other = Measurement::new_try_unit(1, "ar").unwrap();
         assert!(measurement.field_eq(&other));
 
-        let measurement = Measurement::new(1.0, "ar").unwrap();
-        let other = Measurement::new(1.0, "har").unwrap();
+        let measurement = Measurement::new_try_unit(1, "ar").unwrap();
+        let other = Measurement::new_try_unit(1, "har").unwrap();
         assert!(!measurement.field_eq(&other));
 
-        let measurement = Measurement::new(1.0, "100ar").unwrap();
-        let other = Measurement::new(1.0, "har").unwrap();
+        let measurement = Measurement::new_try_unit(1, "100ar").unwrap();
+        let other = Measurement::new_try_unit(1, "har").unwrap();
         assert!(!measurement.field_eq(&other));
 
-        let measurement = Measurement::new(100.0, "ar").unwrap();
-        let other = Measurement::new(1.0, "har").unwrap();
+        let measurement = Measurement::new_try_unit(100, "ar").unwrap();
+        let other = Measurement::new_try_unit(1, "har").unwrap();
         assert!(!measurement.field_eq(&other));
     }
 }
