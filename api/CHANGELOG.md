@@ -1,5 +1,21 @@
 # Change Log
 
+## [unreleased]
+
+### Added
+
+### Changed
+
+* Updated `package.edition` to use `"2018"` in `Cargo.toml`.
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
 ## [0.5.1] - 2018-11-06
 
 ### Changed

@@ -10,11 +10,11 @@
     trivial_numeric_casts
 )]
 
-extern crate reqwest;
-extern crate serde_transcode;
-extern crate serde_xml_rs;
-extern crate simple_logger;
-extern crate toml;
+use reqwest;
+use serde_transcode;
+use serde_xml_rs;
+use simple_logger;
+use toml;
 
 use std::fs::File;
 use std::io::{Read, Write};

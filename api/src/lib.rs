@@ -13,7 +13,7 @@
 #[cfg(test)]
 #[macro_use]
 extern crate approx;
-extern crate failure;
+use failure;
 
 #[macro_use]
 extern crate failure_derive;
