@@ -194,7 +194,8 @@ mod tests {
                     "exponent": -4,
                     "annotation": null
                 }]
-        }"#.replace("\n", "")
+        }"#
+            .replace("\n", "")
             .replace(" ", "");
 
             let term1 =
