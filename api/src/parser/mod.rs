@@ -2,7 +2,7 @@ include!(concat!(env!("OUT_DIR"), "/classification.rs"));
 include!(concat!(env!("OUT_DIR"), "/property.rs"));
 include!(concat!(env!("OUT_DIR"), "/atom.rs"));
 
-pub(self) mod symbols;
+// pub(self) mod symbols;
 
 mod annotation_composition;
 #[cfg(test)]
