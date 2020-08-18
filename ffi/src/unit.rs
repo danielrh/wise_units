@@ -170,7 +170,7 @@ pub unsafe extern "C" fn unit_expression(data: *const Unit) -> *const c_char {
 pub unsafe extern "C" fn unit_expression_buf(
     data: *const Unit,
     buffer: *mut c_char,
-    length: i32,
+    length: usize,
 ) -> i32 {
     error::clear_last_err_msg();
 
@@ -250,7 +250,7 @@ pub unsafe extern "C" fn unit_composition(data: *const Unit) -> *const c_char {
 pub unsafe extern "C" fn unit_composition_buf(
     data: *const Unit,
     buffer: *mut c_char,
-    length: i32,
+    length: usize,
 ) -> i32 {
     error::clear_last_err_msg();
 

@@ -19,8 +19,7 @@
 // C bindings don't include the module name, so ffi functions will need it.
 #![allow(clippy::module_name_repetitions)]
 
-use std::os::raw::c_char;
-use std::ptr;
+use std::{convert::TryInto, os::raw::c_char, ptr};
 pub mod measurement;
 pub mod unit;
 
@@ -31,7 +30,7 @@ fn set_error_and_return<T>(message: String) -> *const T {
     std::ptr::null()
 }
 
-unsafe fn return_string_in_buffer(string: String, buffer: *mut c_char, length: i32) -> i32 {
+fn return_string_in_buffer(string: String, buffer: *mut c_char, length: usize) -> i32 {
     if buffer.is_null() {
         ffi_common::error::set_last_err_msg(
             "Null pointer passed into return_string_in_buffer() as the buffer",
@@ -39,27 +38,28 @@ unsafe fn return_string_in_buffer(string: String, buffer: *mut c_char, length: i
         return -1;
     }
 
-    let buffer = std::slice::from_raw_parts_mut(buffer as *mut u8, length as usize);
+    unsafe {
+        let buffer_internal = std::slice::from_raw_parts_mut(buffer as *mut u8, length);
 
-    if string.len() >= buffer.len() {
-        ffi_common::error::set_last_err_msg(
-            format!(
-                "Buffer provided for writing the message is too small.
+        if string.len() >= buffer_internal.len() {
+            ffi_common::error::set_last_err_msg(
+                format!(
+                    "Buffer provided for writing the message is too small.
             Expected at least {} bytes but got {}",
-                string.len() + 1,
-                buffer.len()
-            )
-            .as_str(),
-        );
-        buffer[0] = 0;
-        return (string.len() + 1) as i32;
+                    string.len() + 1,
+                    buffer_internal.len()
+                )
+                .as_str(),
+            );
+            buffer_internal[0] = 0;
+            return (string.len() + 1).try_into().unwrap();
+        }
+
+        ptr::copy_nonoverlapping(string.as_ptr(), buffer_internal.as_mut_ptr(), string.len());
+
+        // Add a trailing null so people using the string as a `char *` don't
+        // accidentally read into garbage.
+        buffer_internal[string.len()] = 0;
     }
-
-    ptr::copy_nonoverlapping(string.as_ptr(), buffer.as_mut_ptr(), string.len());
-
-    // Add a trailing null so people using the string as a `char *` don't
-    // accidentally read into garbage.
-    buffer[string.len()] = 0;
-
-    return string.len() as i32;
+    string.len().try_into().unwrap()
 }
