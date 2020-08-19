@@ -19,6 +19,7 @@
 // C bindings don't include the module name, so ffi functions will need it.
 #![allow(clippy::module_name_repetitions)]
 
+use ffi_common::try_or_set_error;
 use std::{convert::TryInto, os::raw::c_char, ptr};
 pub mod measurement;
 pub mod unit;
@@ -31,6 +32,7 @@ fn set_error_and_return<T>(message: String) -> *const T {
 }
 
 fn return_string_in_buffer(string: String, buffer: *mut c_char, length: usize) -> i32 {
+    ffi_common::error::clear_last_err_msg();
     if buffer.is_null() {
         ffi_common::error::set_last_err_msg(
             "Null pointer passed into return_string_in_buffer() as the buffer",
@@ -52,7 +54,8 @@ fn return_string_in_buffer(string: String, buffer: *mut c_char, length: usize) -
                 .as_str(),
             );
             buffer_internal[0] = 0;
-            return (string.len() + 1).try_into().unwrap();
+
+            return try_or_set_error!((string.len() + 1).try_into(), -1);
         }
 
         ptr::copy_nonoverlapping(string.as_ptr(), buffer_internal.as_mut_ptr(), string.len());
@@ -61,5 +64,6 @@ fn return_string_in_buffer(string: String, buffer: *mut c_char, length: usize) -
         // accidentally read into garbage.
         buffer_internal[string.len()] = 0;
     }
-    string.len().try_into().unwrap()
+
+    try_or_set_error!(string.len().try_into(), -1)
 }
