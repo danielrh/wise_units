@@ -30,7 +30,7 @@ parser, which depends on Rust 1.23.
 
 ### Feature `serde`
 
-wise_units provides the ability to (de)serialize `Measurement`s and its children
+`wise_units` provides the ability to (de)serialize `Measurement`s and its children
 using the `serde` feature (using [serde](https://serde.rs)). This lets you
 convert wise_units objects into (and from!) any of the many formats supported by
 serde. For example, deserializing a `Measurement` looks like:
@@ -49,6 +49,11 @@ This feature is disabled by default. To enable it:
 [dependencies]
 wise_units = { version = "0.10", features = ["serde"] }
 ```
+
+### Feature `json-schema`
+
+While closely related to the `serde` feature, the `json-schema` feature
+implements `schemars::JsonSchema` for `Measurement`
 
 ## Examples
 

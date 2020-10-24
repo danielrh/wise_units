@@ -11,6 +11,9 @@ mod reducible;
 mod to_reduced;
 mod ucum_unit;
 
+#[cfg(feature = "json-schema")]
+pub mod json_schema;
+
 use crate::error::Error;
 use crate::reducible::Reducible;
 use crate::ucum_unit::UcumUnit;
