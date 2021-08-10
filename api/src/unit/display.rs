@@ -69,7 +69,7 @@ fn extract_denominator(term: &Term) -> Option<String> {
 
     extract_denominator_atom(term, &mut term_string);
 
-    if let Some(ref annotation) = term.annotation {
+    if let Some(ref annotation) = term.annotation() {
         term_string.push_str(&format!("{{{}}}", annotation));
     }
 
@@ -77,12 +77,12 @@ fn extract_denominator(term: &Term) -> Option<String> {
 }
 
 fn extract_denominator_atom(term: &Term, term_string: &mut String) {
-    if let Some(atom) = term.atom {
-        if let Some(prefix) = term.prefix {
+    if let Some(atom) = term.atom() {
+        if let Some(prefix) = term.prefix() {
             term_string.push_str(&prefix.to_string());
         }
 
-        if let Some(exponent) = term.exponent {
+        if let Some(exponent) = term.exponent() {
             let ex_abs = exponent.abs();
 
             if ex_abs == 1 {

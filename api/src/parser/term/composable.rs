@@ -9,11 +9,11 @@ impl Composable for Term {
     // TODO: https://agrian.atlassian.net/browse/DEV-971
     //
     fn composition(&self) -> Composition {
-        match self.atom {
+        match self.atom() {
             Some(atom) => {
                 let atom_composition = atom.composition();
 
-                match self.exponent {
+                match self.exponent() {
                     Some(term_exponent) => atom_composition * term_exponent,
                     None => atom_composition,
                 }
@@ -48,7 +48,7 @@ mod tests {
         ($test_name:ident, $expected_value:expr) => {
             #[test]
             fn $test_name() {
-                let term = term!();
+                let term = Term::Factor(0);
                 assert_eq!(term.composition(), $expected_value);
             }
         };
@@ -58,42 +58,66 @@ mod tests {
     validate_composition!(validate_composition_blank, Composition::default());
     validate_composition!(
         validate_composition_meter,
-        term!(Meter),
+        Term::Atom(Atom::Meter),
         Composition::new(Dimension::Length, 1)
     );
     validate_composition!(
         validate_composition_kilometer,
-        term!(Kilo, Meter),
+        Term::PA {
+            prefix: Prefix::Kilo,
+            atom: Atom::Meter
+        },
         Composition::new(Dimension::Length, 1)
     );
     validate_composition!(
         validate_composition_meter_positive_non1_exponent,
-        term!(Meter, exponent: 2),
+        Term::AE {
+            atom: Atom::Meter,
+            exponent: 2
+        },
         Composition::new(Dimension::Length, 2)
     );
     validate_composition!(
         validate_composition_meter_negative_exponent,
-        term!(Meter, exponent: -1),
+        Term::AE {
+            atom: Atom::Meter,
+            exponent: -1
+        },
         Composition::new(Dimension::Length, -1)
     );
     validate_composition!(
         validate_composition_meter_negative_exponent2,
-        term!(Meter, exponent: -2),
+        Term::AE {
+            atom: Atom::Meter,
+            exponent: -2
+        },
         Composition::new(Dimension::Length, -2)
     );
     validate_composition!(
         validate_composition_meter_factor,
-        term!(Meter, factor: 10),
+        Term::FA {
+            atom: Atom::Meter,
+            factor: 10
+        },
         Composition::new(Dimension::Length, 1)
     );
     validate_composition!(
         validate_composition_kilometer_factor,
-        term!(Kilo, Meter, factor: 10),
+        Term::FPA {
+            factor: 10,
+            prefix: Prefix::Kilo,
+            atom: Atom::Meter,
+        },
         Composition::new(Dimension::Length, 1)
     );
     validate_composition!(
         validate_composition_kilometer_factor_negative_exponent,
-        term!(Kilo, Meter, factor: 10, exponent: -1),
+        Term::FPAE {
+            prefix: Prefix::Kilo,
+            atom: Atom::Meter,
+            factor: 10,
+            exponent: -1
+        },
         Composition::new(Dimension::Length, -1)
     );
 }

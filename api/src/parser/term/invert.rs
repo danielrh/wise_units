@@ -2,15 +2,248 @@ use super::Term;
 use crate::invert::{Invert, ToInverse};
 
 // Term
-impl Invert for &mut Term {
-    fn invert(self) {
-        self.exponent = match self.exponent {
-            Some(e) => match e {
-                -1 => None,
-                _ => Some(-e),
+impl Invert for Term {
+    fn invert(self) -> Self {
+        match self {
+            Term::FPAEA {
+                factor,
+                prefix,
+                atom,
+                exponent,
+                annotation,
+            } => {
+                if exponent == -1 {
+                    Term::FPAA {
+                        factor,
+                        prefix,
+                        atom,
+                        annotation,
+                    }
+                } else {
+                    Term::FPAEA {
+                        factor,
+                        prefix,
+                        atom,
+                        exponent: -exponent,
+                        annotation,
+                    }
+                }
+            }
+            Term::FPAE {
+                factor,
+                prefix,
+                atom,
+                exponent,
+            } => {
+                if exponent == -1 {
+                    Term::FPA {
+                        factor,
+                        prefix,
+                        atom,
+                    }
+                } else {
+                    Term::FPAE {
+                        factor,
+                        prefix,
+                        atom,
+                        exponent: -exponent,
+                    }
+                }
+            }
+            Term::FPAE {
+                factor,
+                prefix,
+                atom,
+                exponent,
+            } => {
+                if exponent == -1 {
+                    Term::FPA {
+                        factor,
+                        prefix,
+                        atom,
+                    }
+                } else {
+                    Term::FPAE {
+                        factor,
+                        prefix,
+                        atom,
+                        exponent: -exponent,
+                    }
+                }
+            }
+            Term::FPAA {
+                factor,
+                prefix,
+                atom,
+                annotation,
+            } => Term::FPAEA {
+                factor,
+                prefix,
+                atom,
+                exponent: -1,
+                annotation,
             },
-            None => Some(-1),
-        };
+            Term::FPA {
+                factor,
+                prefix,
+                atom,
+            } => Term::FPAE {
+                factor,
+                prefix,
+                atom,
+                exponent: -1,
+            },
+            Term::FAEA {
+                factor,
+                atom,
+                exponent,
+                annotation,
+            } => {
+                if exponent == -1 {
+                    Term::FAA {
+                        factor,
+                        atom,
+                        annotation,
+                    }
+                } else {
+                    Term::FAEA {
+                        factor,
+                        atom,
+                        exponent: -exponent,
+                        annotation,
+                    }
+                }
+            }
+            Term::FAE {
+                factor,
+                atom,
+                exponent,
+            } => {
+                if exponent == -1 {
+                    Term::FA { factor, atom }
+                } else {
+                    Term::FAE {
+                        factor,
+                        atom,
+                        exponent: -exponent,
+                    }
+                }
+            }
+            Term::FAA {
+                factor,
+                atom,
+                annotation,
+            } => Term::FAEA {
+                factor,
+                atom,
+                exponent: -1,
+                annotation,
+            },
+            Term::FA { factor, atom } => Term::FAE {
+                factor,
+                atom,
+                exponent: -1,
+            },
+            Term::FE { factor, exponent } => {
+                if exponent == -1 {
+                    Term::Factor(factor)
+                } else {
+                    Term::FE {
+                        factor,
+                        exponent: -1,
+                    }
+                }
+            }
+            Term::Factor(factor) => Term::FE {
+                factor,
+                exponent: -1,
+            },
+            Term::PAEA {
+                prefix,
+                atom,
+                exponent,
+                annotation,
+            } => {
+                if exponent == -1 {
+                    Term::PAA {
+                        prefix,
+                        atom,
+                        annotation,
+                    }
+                } else {
+                    Term::PAEA {
+                        prefix,
+                        atom,
+                        exponent: -exponent,
+                        annotation,
+                    }
+                }
+            }
+            Term::PAE {
+                prefix,
+                atom,
+                exponent,
+            } => {
+                if exponent == -1 {
+                    Term::PA { prefix, atom }
+                } else {
+                    Term::PAE {
+                        prefix,
+                        atom,
+                        exponent: -exponent,
+                    }
+                }
+            }
+            Term::PAA {
+                prefix,
+                atom,
+                annotation,
+            } => Term::PAEA {
+                prefix,
+                atom,
+                exponent: -1,
+                annotation,
+            },
+            Term::PA { prefix, atom } => Term::PAE {
+                prefix,
+                atom,
+                exponent: -1,
+            },
+            Term::AEA {
+                atom,
+                exponent,
+                annotation,
+            } => {
+                if exponent == -1 {
+                    Term::AA { atom, annotation }
+                } else {
+                    Term::AEA {
+                        atom,
+                        exponent: -exponent,
+                        annotation,
+                    }
+                }
+            }
+            Term::AE { atom, exponent } => {
+                if exponent == -1 {
+                    Term::Atom(atom)
+                } else {
+                    Term::AE {
+                        atom,
+                        exponent: -exponent,
+                    }
+                }
+            }
+            Term::AA { atom, annotation } => Term::AEA {
+                atom,
+                exponent: -1,
+                annotation,
+            },
+            Term::Atom(atom) => Term::AE { atom, exponent: -1 },
+            Term::Annotation(_annotation) => {
+                todo!()
+            }
+        }
     }
 }
 
@@ -18,19 +251,20 @@ impl ToInverse for Term {
     type Output = Self;
 
     fn to_inverse(&self) -> Self::Output {
-        let mut new_term = self.clone();
-        new_term.invert();
-
-        new_term
+        self.clone().invert()
     }
 }
 
 // Vec<Term>
-impl Invert for &mut Vec<Term> {
-    fn invert(self) {
-        for term in self.iter_mut() {
-            term.invert()
+impl Invert for Vec<Term> {
+    fn invert(self) -> Self {
+        let mut v = Vec::with_capacity(self.len());
+
+        for term in self.into_iter() {
+            v.push(term.invert());
         }
+
+        v
     }
 }
 
@@ -49,44 +283,77 @@ mod tests {
 
         #[test]
         fn validate_invert_numerator_no_exponent() {
-            let mut term = term!(Meter);
-            term.invert();
-            assert_eq!(term, term!(Meter, exponent: -1));
+            let term = Term::Atom(Atom::Meter);
+            assert_eq!(
+                term.invert(),
+                Term::AE {
+                    atom: Atom::Meter,
+                    exponent: -1
+                }
+            );
         }
 
         #[test]
         fn validate_invert_numerator_with_exponent_1() {
-            let mut term = term!(Meter, exponent: 1);
-            term.invert();
-            assert_eq!(term, term!(Meter, exponent: -1));
+            let term = Term::AE {
+                atom: Atom::Meter,
+                exponent: 1,
+            };
+            assert_eq!(
+                term.invert(),
+                Term::AE {
+                    atom: Atom::Meter,
+                    exponent: -1
+                }
+            );
         }
 
         #[test]
         fn validate_invert_denominator_with_exponent_minus_1() {
-            let mut term = term!(Meter, exponent: -1);
-            term.invert();
-            assert_eq!(term, term!(Meter));
+            let term = Term::AE {
+                atom: Atom::Meter,
+                exponent: -1,
+            };
+            assert_eq!(term.invert(), Term::Atom(Atom::Meter));
         }
 
         #[test]
         fn validate_to_inverse_numerator_no_exponent() {
-            let term = term!(Meter);
+            let term = Term::Atom(Atom::Meter);
             let new_term = term.to_inverse();
-            assert_eq!(new_term, term!(Meter, exponent: -1));
+            assert_eq!(
+                new_term,
+                Term::AE {
+                    atom: Atom::Meter,
+                    exponent: -1
+                }
+            );
         }
 
         #[test]
         fn validate_to_inverse_numerator_with_exponent() {
-            let term = term!(Meter, exponent: 1);
+            let term = Term::AE {
+                atom: Atom::Meter,
+                exponent: 1,
+            };
             let new_term = term.to_inverse();
-            assert_eq!(new_term, term!(Meter, exponent: -1));
+            assert_eq!(
+                new_term,
+                Term::AE {
+                    atom: Atom::Meter,
+                    exponent: -1
+                }
+            );
         }
 
         #[test]
         fn validate_to_inverse_denominator_with_exponent_minus_1() {
-            let term = term!(Meter, exponent: -1);
+            let term = Term::AE {
+                atom: Atom::Meter,
+                exponent: -1,
+            };
             let new_term = term.to_inverse();
-            assert_eq!(new_term, term!(Meter));
+            assert_eq!(new_term, Term::Atom(Atom::Meter));
         }
     }
 
@@ -95,104 +362,239 @@ mod tests {
 
         #[test]
         fn validate_invert_numerator_no_exponent() {
-            let mut terms = vec![term!(Meter)];
-            terms.invert();
-            assert_eq!(terms, vec![term!(Meter, exponent: -1)]);
+            let terms = vec![Term::Atom(Atom::Meter)];
+            assert_eq!(
+                terms.invert(),
+                vec![Term::AE {
+                    atom: Atom::Meter,
+                    exponent: -1
+                }]
+            );
         }
 
         #[test]
         fn validate_invert_numerator_with_exponent_1() {
-            let mut terms = vec![term!(Meter, exponent: 1)];
-            terms.invert();
-            assert_eq!(terms, vec![term!(Meter, exponent: -1)]);
+            let terms = vec![Term::AE {
+                atom: Atom::Meter,
+                exponent: 1,
+            }];
+            assert_eq!(
+                terms.invert(),
+                vec![Term::AE {
+                    atom: Atom::Meter,
+                    exponent: -1
+                }]
+            );
         }
 
         #[test]
         fn validate_invert_denominator_with_exponent_minus_1() {
-            let mut terms = vec![term!(Meter, exponent: -1)];
-            terms.invert();
-            assert_eq!(terms, vec![term!(Meter)]);
+            let terms = vec![Term::AE {
+                atom: Atom::Meter,
+                exponent: -1,
+            }];
+            assert_eq!(terms.invert(), vec![Term::Atom(Atom::Meter)]);
         }
 
         #[test]
         fn validate_invert_numerator_and_denominator() {
-            let mut terms = vec![term!(Meter, exponent: 2), term!(Second, exponent: -2)];
-            terms.invert();
+            let terms = vec![
+                Term::AE {
+                    atom: Atom::Meter,
+                    exponent: 2,
+                },
+                Term::AE {
+                    atom: Atom::Second,
+                    exponent: -2,
+                },
+            ];
             assert_eq!(
-                terms,
-                vec![term!(Meter, exponent: -2), term!(Second, exponent: 2)]
+                terms.invert(),
+                vec![
+                    Term::AE {
+                        atom: Atom::Meter,
+                        exponent: -2
+                    },
+                    Term::AE {
+                        atom: Atom::Second,
+                        exponent: 2
+                    }
+                ]
             );
         }
 
         #[test]
         fn validate_invert_numerators_and_denominators_mixed() {
-            let mut terms = vec![
-                term!(Meter, exponent: 2),
-                term!(Second, exponent: -2),
-                term!(Gram, exponent: -4),
-                term!(Kilo, Meter, exponent: 4),
-                term!(Hecto, Are, exponent: -5),
+            let terms = vec![
+                Term::AE {
+                    atom: Atom::Meter,
+                    exponent: 2,
+                },
+                Term::AE {
+                    atom: Atom::Second,
+                    exponent: -2,
+                },
+                Term::AE {
+                    atom: Atom::Gram,
+                    exponent: -4,
+                },
+                Term::PAE {
+                    prefix: Prefix::Kilo,
+                    atom: Atom::Meter,
+                    exponent: 4,
+                },
+                Term::PAE {
+                    prefix: Prefix::Hecto,
+                    atom: Atom::Are,
+                    exponent: -5,
+                },
             ];
-            terms.invert();
 
             let result = vec![
-                term!(Meter, exponent: -2),
-                term!(Second, exponent: 2),
-                term!(Gram, exponent: 4),
-                term!(Kilo, Meter, exponent: -4),
-                term!(Hecto, Are, exponent: 5),
+                Term::AE {
+                    atom: Atom::Meter,
+                    exponent: -2,
+                },
+                Term::AE {
+                    atom: Atom::Second,
+                    exponent: 2,
+                },
+                Term::AE {
+                    atom: Atom::Gram,
+                    exponent: 4,
+                },
+                Term::PAE {
+                    prefix: Prefix::Kilo,
+                    atom: Atom::Meter,
+                    exponent: -4,
+                },
+                Term::PAE {
+                    prefix: Prefix::Hecto,
+                    atom: Atom::Are,
+                    exponent: 5,
+                },
             ];
-            assert_eq!(terms, result);
+            assert_eq!(terms.invert(), result);
         }
 
         #[test]
         fn validate_to_inverse_numerator_no_exponent() {
-            let terms = vec![term!(Meter)];
+            let terms = vec![Term::Atom(Atom::Meter)];
             let new_terms = terms.to_inverse();
-            assert_eq!(new_terms, vec![term!(Meter, exponent: -1)]);
+            assert_eq!(
+                new_terms,
+                vec![Term::AE {
+                    atom: Atom::Meter,
+                    exponent: -1
+                }]
+            );
         }
 
         #[test]
         fn validate_to_inverse_numerator_with_exponent_1() {
-            let terms = vec![term!(Meter, exponent: 1)];
+            let terms = vec![Term::AE {
+                atom: Atom::Meter,
+                exponent: 1,
+            }];
             let new_terms = terms.to_inverse();
-            assert_eq!(new_terms, vec![term!(Meter, exponent: -1)]);
+            assert_eq!(
+                new_terms,
+                vec![Term::AE {
+                    atom: Atom::Meter,
+                    exponent: -1
+                }]
+            );
         }
 
         #[test]
         fn validate_to_inverse_denominator_with_exponent_minus_1() {
-            let terms = vec![term!(Meter, exponent: -1)];
+            let terms = vec![Term::AE {
+                atom: Atom::Meter,
+                exponent: -1,
+            }];
             let new_terms = terms.to_inverse();
-            assert_eq!(new_terms, vec![term!(Meter)]);
+            assert_eq!(new_terms, vec![Term::Atom(Atom::Meter)]);
         }
 
         #[test]
         fn validate_to_inverse_numerator_and_denominator() {
-            let terms = vec![term!(Meter, exponent: 2), term!(Second, exponent: -2)];
+            let terms = vec![
+                Term::AE {
+                    atom: Atom::Meter,
+                    exponent: 2,
+                },
+                Term::AE {
+                    atom: Atom::Second,
+                    exponent: -2,
+                },
+            ];
             let new_terms = terms.to_inverse();
             assert_eq!(
                 new_terms,
-                vec![term!(Meter, exponent: -2), term!(Second, exponent: 2)]
+                vec![
+                    Term::AE {
+                        atom: Atom::Meter,
+                        exponent: -2
+                    },
+                    Term::AE {
+                        atom: Atom::Second,
+                        exponent: 2
+                    }
+                ]
             );
         }
 
         #[test]
         fn validate_to_inverse_numerators_and_denominators_mixed() {
             let terms = vec![
-                term!(Meter, exponent: 2),
-                term!(Second, exponent: -2),
-                term!(Gram, exponent: -4),
-                term!(Kilo, Meter, exponent: 4),
-                term!(Hecto, Are, exponent: -5),
+                Term::AE {
+                    atom: Atom::Meter,
+                    exponent: 2,
+                },
+                Term::AE {
+                    atom: Atom::Second,
+                    exponent: -2,
+                },
+                Term::AE {
+                    atom: Atom::Gram,
+                    exponent: -4,
+                },
+                Term::PAE {
+                    prefix: Prefix::Kilo,
+                    atom: Atom::Meter,
+                    exponent: 4,
+                },
+                Term::PAE {
+                    prefix: Prefix::Hecto,
+                    atom: Atom::Are,
+                    exponent: -5,
+                },
             ];
             let new_terms = terms.to_inverse();
 
             let result = vec![
-                term!(Meter, exponent: -2),
-                term!(Second, exponent: 2),
-                term!(Gram, exponent: 4),
-                term!(Kilo, Meter, exponent: -4),
-                term!(Hecto, Are, exponent: 5),
+                Term::AE {
+                    atom: Atom::Meter,
+                    exponent: -2,
+                },
+                Term::AE {
+                    atom: Atom::Second,
+                    exponent: 2,
+                },
+                Term::AE {
+                    atom: Atom::Gram,
+                    exponent: 4,
+                },
+                Term::PAE {
+                    prefix: Prefix::Kilo,
+                    atom: Atom::Meter,
+                    exponent: -4,
+                },
+                Term::PAE {
+                    prefix: Prefix::Hecto,
+                    atom: Atom::Are,
+                    exponent: 5,
+                },
             ];
             assert_eq!(new_terms, result);
         }

@@ -1,5 +1,7 @@
-use crate::parser::annotation_composition::{AnnotationComposable, AnnotationComposition};
-use crate::parser::Term;
+use crate::parser::{
+    annotation_composition::{AnnotationComposable, AnnotationComposition},
+    Term,
+};
 
 /// Similar to `Composable`, this is only to allow for checking compatibility on `Unit`s whose
 /// `Term`s have annotations. For those cases, we want to be able to ensure that, for example,
@@ -7,14 +9,14 @@ use crate::parser::Term;
 /// as its own `Dimension` of sorts, allowing `m2{foo}/m{foo}` to be comparable to `m{foo}`, since
 /// they have equivalent `AnnotationComposable`s.
 ///
-impl<'a> AnnotationComposable for &'a [Term] {
-    fn annotation_composition(self) -> Option<AnnotationComposition> {
+impl<'a> AnnotationComposable<'a> for &'a [Term] {
+    fn annotation_composition(self) -> Option<AnnotationComposition<'a>> {
         let mut map = self
             .iter()
             .filter_map(|term| {
-                term.annotation
+                term.annotation()
                     .as_ref()
-                    .map(|annotation| (annotation.clone(), term.exponent.unwrap_or(1)))
+                    .map(|annotation| (annotation.clone(), term.exponent().unwrap_or(1)))
             })
             .fold(AnnotationComposition::new(), |mut map, (key, exponent)| {
                 let _ = map
@@ -47,19 +49,28 @@ mod tests {
 
         #[test]
         fn validate_no_atom() {
-            let terms = [term!()];
+            let terms = &[Term::Factor(42)];
             assert!(terms.annotation_composition().is_none());
         }
 
         #[test]
         fn validate_with_atom() {
-            let terms = [term!(Meter)];
+            let terms = &[Term::Atom(Atom::Meter)];
             assert!(terms.annotation_composition().is_none());
         }
 
         #[test]
         fn validate_with_atom_and_exponent() {
-            let terms = [term!(Meter, exponent: 2), term!(Second, exponent: -1)];
+            let terms = &[
+                Term::AE {
+                    atom: Atom::Meter,
+                    exponent: 2,
+                },
+                Term::AE {
+                    atom: Atom::Second,
+                    exponent: -1,
+                },
+            ];
             assert!(terms.annotation_composition().is_none());
         }
     }
@@ -69,51 +80,74 @@ mod tests {
 
         #[test]
         fn validate_no_atom() {
-            let terms = [term!(annotation: "foo".to_string())];
+            let terms = &[Term::Annotation("foo".to_string())];
 
             let mut annotation_composition = AnnotationComposition::new();
-            let _ = annotation_composition.insert("foo".to_string(), 1);
+            let _ = annotation_composition.insert("foo", 1);
 
             assert_eq!(terms.annotation_composition(), Some(annotation_composition));
         }
 
         #[test]
         fn validate_with_atom() {
-            let terms = [term!(Meter, annotation: "foo".to_string())];
+            let terms = &[Term::AA {
+                atom: Atom::Meter,
+                annotation: "foo".to_string(),
+            }];
 
             let mut annotation_composition = AnnotationComposition::new();
-            let _ = annotation_composition.insert("foo".to_string(), 1);
+            let _ = annotation_composition.insert("foo", 1);
 
             assert_eq!(terms.annotation_composition(), Some(annotation_composition));
         }
 
         #[test]
         fn validate_with_atom_and_negative_exponent() {
-            let terms = [term!(Meter, exponent: -2, annotation: "foo".to_string())];
+            let terms = &[Term::AEA {
+                atom: Atom::Meter,
+                exponent: -2,
+                annotation: "foo".to_string(),
+            }];
 
             let mut annotation_composition = AnnotationComposition::new();
-            let _ = annotation_composition.insert("foo".to_string(), -2);
+            let _ = annotation_composition.insert("foo", -2);
 
             assert_eq!(terms.annotation_composition(), Some(annotation_composition));
         }
 
         #[test]
         fn validate_with_atoms_and_positive_and_negative_exponents() {
-            let terms = [
-                term!(Gram, exponent: 3, annotation: "bar".to_string()),
-                term!(Meter, exponent: -2, annotation: "foo".to_string()),
+            let terms = &[
+                Term::AEA {
+                    atom: Atom::Gram,
+                    exponent: 3,
+                    annotation: "bar".to_string(),
+                },
+                Term::AEA {
+                    atom: Atom::Meter,
+                    exponent: -2,
+                    annotation: "foo".to_string(),
+                },
             ];
             let mut annotation_composition = AnnotationComposition::new();
-            let _ = annotation_composition.insert("bar".to_string(), 3);
-            let _ = annotation_composition.insert("foo".to_string(), -2);
+            let _ = annotation_composition.insert("bar", 3);
+            let _ = annotation_composition.insert("foo", -2);
             assert_eq!(terms.annotation_composition(), Some(annotation_composition));
         }
 
         #[test]
         fn validate_with_atoms_cancelling_exponents() {
-            let terms = [
-                term!(Meter, exponent: 2, annotation: "foo".to_string()),
-                term!(Meter, exponent: -2, annotation: "foo".to_string()),
+            let terms = &[
+                Term::AEA {
+                    atom: Atom::Meter,
+                    exponent: 2,
+                    annotation: "foo".to_string(),
+                },
+                Term::AEA {
+                    atom: Atom::Meter,
+                    exponent: -2,
+                    annotation: "foo".to_string(),
+                },
             ];
             assert!(terms.annotation_composition().is_none());
         }

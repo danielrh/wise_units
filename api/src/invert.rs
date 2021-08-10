@@ -4,7 +4,7 @@
 pub trait Invert {
     /// Updates `self` to be inverted.
     ///
-    fn invert(self);
+    fn invert(self) -> Self;
 }
 
 pub trait ToInverse {

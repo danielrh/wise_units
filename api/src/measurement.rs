@@ -124,7 +124,7 @@ mod tests {
 
         assert_relative_eq!(m.value, 1.0);
         assert_ulps_eq!(m.value, 1.0);
-        assert_eq!(m.unit, Unit::new(vec![term!(Meter)]));
+        assert_eq!(m.unit, Unit::new(vec![Term::Atom(Atom::Meter)]));
     }
 
     #[test]

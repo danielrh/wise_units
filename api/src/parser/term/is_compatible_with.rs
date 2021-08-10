@@ -32,7 +32,7 @@ use crate::parser::{annotation_composition::AnnotationComposable, Composable, Te
 ///
 impl IsCompatibleWith for Term {
     fn is_compatible_with(&self, rhs: &Self) -> bool {
-        self.composition() == rhs.composition() && self.annotation == rhs.annotation
+        self.composition() == rhs.composition() && self.annotation() == rhs.annotation()
     }
 }
 
@@ -56,43 +56,67 @@ mod tests {
 
         #[test]
         fn validate_term() {
-            let lhs = term!(Meter);
-            let rhs = term!(Kilo, Meter);
+            let lhs = Term::Atom(Atom::Meter);
+            let rhs = Term::PA {
+                prefix: Prefix::Kilo,
+                atom: Atom::Meter,
+            };
             assert!(lhs.is_compatible_with(&rhs));
         }
 
         #[test]
         fn validate_term_with_factor() {
-            let lhs = term!(Meter);
-            let rhs = term!(Kilo, Meter, factor: 20);
+            let lhs = Term::Atom(Atom::Meter);
+            let rhs = Term::FPA {
+                prefix: Prefix::Kilo,
+                atom: Atom::Meter,
+                factor: 20,
+            };
             assert!(lhs.is_compatible_with(&rhs));
         }
 
         #[test]
         fn validate_term_with_factor_and_exponent() {
-            let lhs = term!(Meter);
-            let rhs = term!(Kilo, Meter, factor: 20, exponent: 2);
+            let lhs = Term::Atom(Atom::Meter);
+            let rhs = Term::FPAE {
+                prefix: Prefix::Kilo,
+                atom: Atom::Meter,
+                factor: 20,
+                exponent: 2,
+            };
             assert!(!lhs.is_compatible_with(&rhs));
         }
 
         #[test]
         fn validate_terms() {
-            let lhs = vec![term!(Meter)];
-            let rhs = vec![term!(Kilo, Meter)];
+            let lhs = vec![Term::Atom(Atom::Meter)];
+            let rhs = vec![Term::PA {
+                prefix: Prefix::Kilo,
+                atom: Atom::Meter,
+            }];
             assert!(lhs.is_compatible_with(&rhs));
         }
 
         #[test]
         fn validate_terms_with_factor() {
-            let lhs = vec![term!(Meter)];
-            let rhs = vec![term!(Kilo, Meter, factor: 20)];
+            let lhs = vec![Term::Atom(Atom::Meter)];
+            let rhs = vec![Term::FPA {
+                prefix: Prefix::Kilo,
+                atom: Atom::Meter,
+                factor: 20,
+            }];
             assert!(lhs.is_compatible_with(&rhs));
         }
 
         #[test]
         fn validate_terms_with_factor_and_exponent() {
-            let lhs = vec![term!(Meter)];
-            let rhs = vec![term!(Kilo, Meter, factor: 20, exponent: 2)];
+            let lhs = vec![Term::Atom(Atom::Meter)];
+            let rhs = vec![Term::FPAE {
+                prefix: Prefix::Kilo,
+                atom: Atom::Meter,
+                factor: 20,
+                exponent: 2,
+            }];
             assert!(!lhs.is_compatible_with(&rhs));
         }
     }
@@ -102,31 +126,59 @@ mod tests {
 
         #[test]
         fn validate_term() {
-            let m = term!(Meter, annotation: "stuff".to_string());
-            let km_stuff = term!(Kilo, Meter, annotation: "stuff".to_string());
+            let m = Term::AA {
+                atom: Atom::Meter,
+                annotation: "stuff".to_string(),
+            };
+            let km_stuff = Term::PAA {
+                prefix: Prefix::Kilo,
+                atom: Atom::Meter,
+                annotation: "stuff".to_string(),
+            };
             assert!(m.is_compatible_with(&km_stuff));
 
             // Different annotation
-            let km_pants = term!(Kilo, Meter, annotation: "pants".to_string());
+            let km_pants = Term::PAA {
+                prefix: Prefix::Kilo,
+                atom: Atom::Meter,
+                annotation: "pants".to_string(),
+            };
             assert!(!m.is_compatible_with(&km_pants));
 
             // No annotation
-            let km_no_annotation = term!(Kilo, Meter);
+            let km_no_annotation = Term::PA {
+                prefix: Prefix::Kilo,
+                atom: Atom::Meter,
+            };
             assert!(!m.is_compatible_with(&km_no_annotation));
         }
 
         #[test]
         fn validate_terms() {
-            let m = vec![term!(Meter, annotation: "stuff".to_string())];
-            let km_stuff = vec![term!(Kilo, Meter, annotation: "stuff".to_string())];
+            let m = vec![Term::AA {
+                atom: Atom::Meter,
+                annotation: "stuff".to_string(),
+            }];
+            let km_stuff = vec![Term::PAA {
+                prefix: Prefix::Kilo,
+                atom: Atom::Meter,
+                annotation: "stuff".to_string(),
+            }];
             assert!(m.is_compatible_with(&km_stuff));
 
             // Different annotation
-            let km_pants = vec![term!(Kilo, Meter, annotation: "pants".to_string())];
+            let km_pants = vec![Term::PAA {
+                prefix: Prefix::Kilo,
+                atom: Atom::Meter,
+                annotation: "pants".to_string(),
+            }];
             assert!(!m.is_compatible_with(&km_pants));
 
             // No annotation
-            let km_no_annotation = vec![term!(Kilo, Meter)];
+            let km_no_annotation = vec![Term::PA {
+                prefix: Prefix::Kilo,
+                atom: Atom::Meter,
+            }];
             assert!(!m.is_compatible_with(&km_no_annotation));
         }
     }

@@ -17,6 +17,7 @@ macro_rules! validate_definition {
     ) => {
         #[test]
         fn $test_name() {
+            pretty_env_logger::init();
             let atom = Atom::$atom_name;
             let expected = vec![$($expected_term),+];
 
@@ -220,165 +221,233 @@ validate_definition!(
     validate_definition_acre_us,
     AcreUS,
     160.0,
-    term!(RodUS, exponent: 2)
+    Term::AE {
+        atom: Atom::RodUS,
+        exponent: 2
+    }
 );
 
 validate_definition!(
     validate_definition_are,
     Are,
     100.0,
-    term!(Meter, exponent: 2)
+    Term::AE {
+        atom: Atom::Meter,
+        exponent: 2
+    }
 );
 
 validate_definition!(
     validate_definition_degree,
     Degree,
     2.0,
-    term!(TheNumberPi),
-    term!(Radian),
-    term!(factor: 360, exponent: -1)
+    Term::Atom(Atom::TheNumberPi),
+    Term::Atom(Atom::Radian),
+    Term::FE {
+        factor: 360,
+        exponent: -1
+    }
 );
 validate_definition!(
     validate_definition_degree_celsius,
     DegreeCelsius,
     1.0,
-    term!(Kelvin)
+    Term::Atom(Atom::Kelvin)
 );
 validate_definition!(
     validate_definition_degree_fahrenheit,
     DegreeFahrenheit,
     5.0,
-    term!(Kelvin),
-    term!(factor: 9, exponent: -1)
+    Term::Atom(Atom::Kelvin),
+    Term::FE {
+        factor: 9,
+        exponent: -1
+    }
 );
 validate_definition!(
     validate_definition_degree_reaumur,
     DegreeReaumur,
     5.0,
-    term!(Kelvin),
-    term!(factor: 4, exponent: -1)
+    Term::Atom(Atom::Kelvin),
+    Term::FE {
+        factor: 4,
+        exponent: -1
+    }
 );
 validate_definition!(
     validate_definition_fluid_ounce_us,
     FluidOunceUS,
     1.0,
-    term!(GillUS),
-    term!(factor: 4, exponent: -1)
+    Term::Atom(Atom::GillUS),
+    Term::FE {
+        factor: 4,
+        exponent: -1
+    }
 );
 validate_definition!(
     validate_definition_foot_international,
     FootInternational,
     12.0,
-    term!(InchInternational)
+    Term::Atom(Atom::InchInternational)
 );
 validate_definition!(
     validate_definition_inch_international,
     InchInternational,
     254e-2,
-    term!(Centi, Meter)
+    Term::PA {
+        prefix: Prefix::Centi,
+        atom: Atom::Meter
+    }
 );
 validate_definition!(
     validate_definition_foot_us,
     FootUS,
     1200.0,
-    term!(Meter),
-    term!(factor: 3937, exponent: -1)
+    Term::Atom(Atom::Meter),
+    Term::FE {
+        factor: 3937,
+        exponent: -1
+    }
 );
 validate_definition!(
     validate_definition_gill_us,
     GillUS,
     1.0,
-    term!(PintUS),
-    term!(factor: 4, exponent: -1)
+    Term::Atom(Atom::PintUS),
+    Term::FE {
+        factor: 4,
+        exponent: -1
+    }
 );
 validate_definition!(
     validate_definition_liter,
     Liter,
     1.0,
-    term!(Deci, Meter, exponent: 3)
+    Term::PAE {
+        prefix: Prefix::Deci,
+        atom: Atom::Meter,
+        exponent: 3
+    }
 );
 validate_definition!(
     validate_definition_mole,
     Mole,
     6.022_136_7,
-    term!(TheNumberTenForArbitraryPowersStar, exponent: 23)
+    Term::AE {
+        atom: Atom::TheNumberTenForArbitraryPowersStar,
+        exponent: 23
+    }
 );
 validate_definition!(
     validate_definition_parts_per_billion,
     PartsPerBillion,
     1.0,
-    term!(TheNumberTenForArbitraryPowersStar, exponent: -9)
+    Term::AE {
+        atom: Atom::TheNumberTenForArbitraryPowersStar,
+        exponent: -9
+    }
 );
 validate_definition!(
     validate_definition_parts_per_million,
     PartsPerMillion,
     1.0,
-    term!(TheNumberTenForArbitraryPowersStar, exponent: -6)
+    Term::AE {
+        atom: Atom::TheNumberTenForArbitraryPowersStar,
+        exponent: -6
+    }
 );
 validate_definition!(
     validate_definition_parts_per_thousand,
     PartsPerThousand,
     1.0,
-    term!(TheNumberTenForArbitraryPowersStar, exponent: -3)
+    Term::AE {
+        atom: Atom::TheNumberTenForArbitraryPowersStar,
+        exponent: -3
+    }
 );
 validate_definition!(
     validate_definition_ph,
     PH,
     1.0,
-    term!(Mole),
-    term!(Liter, exponent: -1)
+    Term::Atom(Atom::Mole),
+    Term::AE {
+        atom: Atom::Liter,
+        exponent: -1
+    }
 );
 validate_definition!(
     validate_definition_pint_us,
     PintUS,
     1.0,
-    term!(QuartUS),
-    term!(factor: 2, exponent: -1)
+    Term::Atom(Atom::QuartUS),
+    Term::FE {
+        factor: 2,
+        exponent: -1
+    }
 );
 validate_definition!(
     validate_definition_prism_diopter,
     PrismDiopter,
     1.0,
-    term!(Radian)
+    Term::Atom(Atom::Radian)
 );
-validate_definition!(validate_definition_bel_watt, BelWatt, 1.0, term!(Watt));
+validate_definition!(
+    validate_definition_bel_watt,
+    BelWatt,
+    1.0,
+    Term::Atom(Atom::Watt)
+);
 validate_definition!(
     validate_definition_quart_us,
     QuartUS,
     1.0,
-    term!(QueenAnnesWineGallonUS),
-    term!(factor: 4, exponent: -1)
+    Term::Atom(Atom::QueenAnnesWineGallonUS),
+    Term::FE {
+        factor: 4,
+        exponent: -1
+    }
 );
 validate_definition!(
     validate_definition_metric_cup,
     MetricCup,
     240.0,
-    term!(Milli, LiterSecondary)
+    Term::PA {
+        prefix: Prefix::Milli,
+        atom: Atom::LiterSecondary
+    }
 );
 validate_definition!(
     validate_definition_queen_annes_wine_gallon_us,
     QueenAnnesWineGallonUS,
     231.0,
-    term!(InchInternational, exponent: 3)
+    Term::AE {
+        atom: Atom::InchInternational,
+        exponent: 3
+    }
 );
-validate_definition!(validate_definition_rod_us, RodUS, 16.5, term!(FootUS));
+validate_definition!(
+    validate_definition_rod_us,
+    RodUS,
+    16.5,
+    Term::Atom(Atom::FootUS)
+);
 validate_definition!(
     validate_definition_the_number_pi,
     TheNumberPi,
     std::f64::consts::PI,
-    term!(factor: 1)
+    Term::Factor(1)
 );
 validate_definition!(
     validate_definition_the_number_ten_for_arbitrary_powers_caret,
     TheNumberTenForArbitraryPowersCaret,
     10.0,
-    term!(factor: 1)
+    Term::Factor(1)
 );
 validate_definition!(
     validate_definition_the_number_ten_for_arbitrary_powers_star,
     TheNumberTenForArbitraryPowersStar,
     10.0,
-    term!(factor: 1)
+    Term::Factor(1)
 );
 
 // Composition tests

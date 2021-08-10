@@ -172,35 +172,35 @@ mod tests {
 
     #[test]
     fn validate_basic_component() {
-        let pairs = TermParser::parse(Rule::basic_component, "km{stuff}");
+        let pairs = TermParser::parse(Rule::component, "km{stuff}");
         assert!(pairs.is_ok());
 
-        let pairs = TermParser::parse(Rule::basic_component, "km");
+        let pairs = TermParser::parse(Rule::component, "km");
         assert!(pairs.is_ok());
 
-        let pairs = TermParser::parse(Rule::basic_component, "{stuff}");
+        let pairs = TermParser::parse(Rule::component, "{stuff}");
         assert!(pairs.is_ok());
 
         parses_to! {
             parser: TermParser,
             input: "{tot'nit}",
-            rule: Rule::basic_component,
+            rule: Rule::component,
             tokens: [
-                basic_component(0, 9, [
+                component(0, 9, [
                     annotation(1, 8)
                 ])
             ]
         };
 
-        let pairs = TermParser::parse(Rule::basic_component, "234");
+        let pairs = TermParser::parse(Rule::component, "234");
         assert!(pairs.is_ok());
 
-        let pairs = TermParser::parse(Rule::basic_component, "(m.s)");
+        let pairs = TermParser::parse(Rule::component, "(m.s)");
         assert!(pairs.is_ok());
     }
 
     #[test]
-    fn validate_component_with_factor() {
+    fn validate_term_with_factor() {
         let pairs = TermParser::parse(Rule::component, "100km");
         assert!(pairs.is_ok());
 
@@ -209,9 +209,9 @@ mod tests {
             input: "2km",
             rule: Rule::component,
             tokens: [
-                component(0, 3, [
-                      factor(0, 1),
-                      basic_component(1, 3, [
+                term(0, 3, [
+                      component(0, 1, [factor(0, 1)]),
+                      component(1, 3, [
                               annotatable(1, 3, [
                                       simple_unit(1, 3)
                               ])
@@ -223,11 +223,11 @@ mod tests {
         parses_to! {
             parser: TermParser,
             input: "2km-2{meow}",
-            rule: Rule::component,
+            rule: Rule::term,
             tokens: [
-                component(0, 11, [
-                    factor(0, 1),
-                    basic_component(1, 11, [
+                term(0, 11, [
+                    component(0, 1, [factor(0, 1)]),
+                    component(1, 11, [
                         annotatable(1, 5, [
                             simple_unit(1, 3),
                             exponent(3, 5, [
@@ -251,7 +251,7 @@ mod tests {
             tokens: [
                 component(0, 11, [
                     factor(0, 1),
-                    basic_component(1, 11, [
+                    component(1, 11, [
                         annotatable(1, 5, [
                             simple_unit(1, 3),
                             exponent(3, 5, [
@@ -279,7 +279,7 @@ mod tests {
                 term(0, 27, [
                     component(0, 11, [
                         factor(0, 1),
-                        basic_component(1, 11, [
+                        component(1, 11, [
                             annotatable(1, 5, [
                                 simple_unit(1, 3),
                                 exponent(3, 5, [
@@ -293,7 +293,7 @@ mod tests {
                     slash(11, 12),
                     term(12, 27, [
                         component(12, 20, [
-                            basic_component(12, 20, [
+                            component(12, 20, [
                                 annotatable(12, 20, [
                                     simple_unit(12, 20)
                                 ])
@@ -302,7 +302,7 @@ mod tests {
                         dot(20, 21),
                         term(21, 27, [
                             component(21, 27, [
-                                basic_component(21, 27, [
+                                component(21, 27, [
                                     annotatable(21, 27, [
                                         simple_unit(21, 27)
                                     ])
@@ -324,7 +324,7 @@ mod tests {
             tokens: [
                 term(0, 24, [
                     component(0, 8, [
-                        basic_component(0, 8, [
+                        component(0, 8, [
                             annotatable(0, 8, [
                                 simple_unit(0, 8)
                            ])
@@ -333,7 +333,7 @@ mod tests {
                     dot(8, 9),
                     term(9, 24, [
                         component(9, 15, [
-                            basic_component(9, 15, [
+                            component(9, 15, [
                                 annotatable(9, 15, [
                                     simple_unit(9, 15)
                                 ])
@@ -342,7 +342,7 @@ mod tests {
                         slash(15, 16),
                         term(16, 24, [
                             component(16, 24, [
-                                basic_component(16, 24, [
+                                component(16, 24, [
                                     annotatable(16, 24, [
                                         simple_unit(16, 24)
                                     ])
@@ -373,7 +373,7 @@ mod tests {
                     term(1, 3, [
                         component(1, 3, [
                             factor(1, 2),
-                            basic_component(2, 3, [
+                            component(2, 3, [
                                 annotatable(2, 3, [
                                     simple_unit(2, 3)
                                ])
@@ -394,7 +394,7 @@ mod tests {
                     slash(0, 1),
                     term(1, 2, [
                         component(1, 2, [
-                            basic_component(1, 2, [
+                            component(1, 2, [
                                 factor(1, 2)
                             ])
                         ])
